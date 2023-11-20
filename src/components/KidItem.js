@@ -19,7 +19,7 @@ const KidItem = (props) => {
   const {
     style,
     imgDoctor,
-    kidName,
+    name,
     dob,
     school,
     teacher,
@@ -80,19 +80,19 @@ const KidItem = (props) => {
       >
         <Image style={styles.imgDoctor} source={imgDoctor} />
         <View style={styles.rateView}>
-          <Text style={styles.txtkidName}>{kidName}</Text>
+          <Text style={styles.txtkidName}>{name}</Text>
    
         </View>
-        <Text style={styles.txtdob}>{dob} - {ageCalculator(dob)} years old</Text>
+        {dob && <Text style={styles.txtdob}>{dob} - {ageCalculator(dob)} years old</Text>}
         <TouchableOpacity
           onPress={onLocation}
           activeOpacity={0.6}
           style={styles.locationView}
         >
          <View>
-            <Text style={styles.txtLocation}>Doctor: {doctor}</Text>
-            <Text style={styles.txtLocation}>School: {school}</Text>
-            <Text style={styles.txtLocation}>Teacher: {teacher}</Text>
+         {doctor && <Text style={styles.txtLocation}>Doctor: {doctor}</Text> }
+         {school && <Text style={styles.txtLocation}>School: {school}</Text> }
+            {teacher &&  <Text style={styles.txtLocation}>Teacher: {teacher}</Text> }
             </View>
         </TouchableOpacity>
       </TouchableOpacity>

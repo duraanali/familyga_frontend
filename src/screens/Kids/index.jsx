@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useState } from "react";
+import React, { memo, useCallback, useEffect, useState } from "react";
 import { View, FlatList, Platform } from "react-native";
 import { ScaledSheet } from "react-native-size-matters";
 import colors from "@utils/colors";
@@ -10,7 +10,8 @@ import { ConfirmDialog } from "react-native-simple-dialogs";
 import FONTS from "@utils/fonts";
 import { useNavigation } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
+import { useSelector, useDispatch } from 'react-redux';
+import { useFetchKidsQuery } from "../../store/slices/KidSlice";
 const LIST_KIDS_DATA = [
   {
     imgDoctor: require("@assets/ResultFindDoctor/01.png"),
@@ -42,11 +43,19 @@ const LIST_KIDS_DATA = [
 const Kids = memo(() => {
   const { navigate } = useNavigation();
   const { top, bottom } = useSafeAreaInsets();
-  const [listDoctorsData, setListDoctorsData] = useState(LIST_KIDS_DATA);
+  const [listDoctorsData, setListDoctorsData] = useState({});
   const [visible, setVisible] = useState(false);
-
+  const dispatch = useDispatch();
+  const { data: kids, error, isLoading  } = useFetchKidsQuery();
+  console.log('listKids', listDoctorsData)
   const onTouchOutside = useCallback(() => {
     setVisible(false);
+  }, []);
+
+  useEffect(() => {
+    if (kids) {
+      setListDoctorsData(kids.children);
+    }
   }, []);
 
   const onKidProfile = useCallback(() => {
@@ -69,7 +78,7 @@ const Kids = memo(() => {
     ({ item }) => {
       const {
         imgDoctor,
-        kidName,
+        name,
         dob,
         school,
         teacher,
@@ -80,7 +89,7 @@ const Kids = memo(() => {
         <KidItem
           activeRemove={true}
           imgDoctor={imgDoctor}
-          kidName={kidName}
+          name={name}
           dob={dob}
             school={school}
             teacher={teacher}

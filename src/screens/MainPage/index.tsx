@@ -1,4 +1,4 @@
-import React, { memo } from "react";
+import React, { memo, useEffect } from "react";
 import { View, Text, FlatList } from "react-native";
 import { ScaledSheet } from "react-native-size-matters";
 import colors from "@utils/colors";
@@ -18,9 +18,12 @@ import {
 import { useNavigation } from "@react-navigation/native";
 import keyExtractor from "@utils/keyExtractor";
 import AppointmentListItem from "@components/AppointmentListItem";
-
+import { useSelector, useDispatch } from 'react-redux';
 const MainPage = memo(() => {
   const { navigate } = useNavigation();
+  const dispatch = useDispatch();
+  const [user, setUser] = React.useState({});
+  const parent = useSelector((state) => state.parent);
 
   const UPCOMING_DATA = [
     {
@@ -61,6 +64,12 @@ const MainPage = memo(() => {
       content: "3 Done, 2 Left",
     },
   ];
+
+  useEffect(() => {
+    if (parent.isLoggedIn) {
+      setUser(parent.parent.user);
+    }
+  }, [parent.isLoggedIn]);
 
   const renderAppointment = React.useCallback(({ item }) => {
     const {
@@ -107,8 +116,12 @@ const MainPage = memo(() => {
 
   return (
     <View style={styles.container}>
-       <Text style={styles.txtHi}>Hi! Duraan,</Text>
+       {user && (
+        <>
+       <Text style={styles.txtHi}>Hi! {user.name}</Text>
         <Text style={styles.txtToday}>How is your day going?</Text>
+        </>
+        )}
       <FlatList
         data={data || []}
         renderItem={renderItem}

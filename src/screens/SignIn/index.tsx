@@ -17,11 +17,13 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import PolicyCheck from "@components/PolicyCheck";
 import useToggle from "@hooks/useToggle";
+import { useSelector, useDispatch } from 'react-redux';
+import { loginUser } from '../../store/slices/ParentSlice'
 
 const SignIn = memo(() => {
   const { navigate } = useNavigation();
   const { bottom } = useSafeAreaInsets();
-
+  const dispatch = useDispatch();
   const [check, setCheck] = useToggle(false);
 
   const [userName, setUserName] = useState("");
@@ -35,8 +37,13 @@ const SignIn = memo(() => {
     navigate(ROUTES.ForgotPassword);
   }, []);
 
-  const onCreateAccount = useCallback(() => {
-    navigate(ROUTES.DrawerNavigator);
+  const onSignIn = useCallback(() => {
+    dispatch(loginUser({
+      email: "abdiwalighg13@gmail.com",
+    password: "8723987293",
+    }));
+    // navigate(ROUTES.SignIn);
+    
   }, []);
 
   const onPress = useCallback(() => {}, []);
@@ -68,7 +75,7 @@ const SignIn = memo(() => {
         <PolicyCheck check={check} onPress={setCheck} />
         <View style={styles.signInView}>
           <ButtonPrimary
-            onPress={onCreateAccount}
+            onPress={onSignIn}
             style={styles.signIn}
             title={"Sign In"}
             disable={!check}

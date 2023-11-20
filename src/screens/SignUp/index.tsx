@@ -20,6 +20,8 @@ import { widthScreen } from "@utils/dimensions";
 import { useNavigation } from "@react-navigation/native";
 import Container from "@components/Container";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useSelector, useDispatch } from 'react-redux';
+import { signUpUser } from '../../store/slices/ParentSlice'
 
 const SignUp = memo(() => {
   const { navigate } = useNavigation();
@@ -29,12 +31,23 @@ const SignUp = memo(() => {
   const [password, setPassword] = useState("");
   const [rePassword, setRePassword] = useState("");
 
+  const dispatch = useDispatch();
+  const isLoggedIn = useSelector((state) => state.parent);
+
   const onSignIn = useCallback(() => {
     navigate(ROUTES.SignIn);
   }, []);
 
   const onSignUp = useCallback(() => {
-    navigate(ROUTES.SignIn);
+    dispatch(signUpUser({
+      name: "Abdiwali",
+      email: "abdi@gmail.com",
+    password: "8723987293",
+    family_name: "Gelle"
+    }));
+    console.log('isLoggedIn', isLoggedIn)
+    // navigate(ROUTES.SignIn);
+    
   }, []);
 
   const onFaceBook = useCallback(() => {}, []);

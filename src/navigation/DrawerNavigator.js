@@ -1,4 +1,4 @@
-import React, { memo, useState } from "react";
+import React, { memo, useEffect, useState } from "react";
 import { View, StyleSheet, Text, TouchableOpacity } from "react-native";
 import {
   createDrawerNavigator,
@@ -12,13 +12,10 @@ import SvgAvatar from "@svgs/Menu/SvgAvatar";
 import FONTS from "@utils/fonts";
 import DrawerItem from "@components/DrawerItem";
 import useLayout from "@hooks/useLayout";
+import { useDispatch, useSelector } from 'react-redux'; // Import useDispatch
+import { logoutUser } from '../store/slices/ParentSlice'; // Import logoutUser action
 
 const Drawer = createDrawerNavigator();
-
-const DATA_USER = {
-  avatar: require("@assets/Menu/Avatar.png"),
-  userName: "Duraan Ali",
-};
 
 const SCREENS = [
   { id: 0, label: "Home" },
@@ -30,10 +27,31 @@ const SCREENS = [
 
 const DrawerNavigator = memo(() => {
   const {bottom}=useLayout()
-  const [user, setUser] = useState(DATA_USER);
+  const [user, setUser] = useState({});
   const [tabActive, setTabActive] = useState(0);
+  const dispatch = useDispatch(); // Create dispatch object
+
+  const parent = useSelector((state) => state.parent); // Accessing parent state
+
+  useEffect(() => {
+    if (parent.isLoggedIn) {
+      setUser({
+        avatar: require("@assets/Menu/Avatar.png"),
+        userName: parent.parent.user.name,
+      });
+    }
+  }, [parent.isLoggedIn]);
+  const handleLogout = (props) => {
+    dispatch(logoutUser()); // Dispatch logoutUser action
+    props.navigation.navigate(ROUTES.SignIn); // Navigate to SignIn screen or any other screen as needed
+  };
 
   const onNavigate = (key, props) => {
+
+    if (key === 7) { // Assuming '7' is the ID for the Logout option
+      handleLogout(props);
+    }
+
     switch (key) {
       case 0:
         props.navigation.navigate(ROUTES.MainPageBottomTab);
