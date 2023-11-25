@@ -1,5 +1,5 @@
 import React, { memo, useState, useCallback } from "react";
-import { View, Text, Platform, TouchableOpacity } from "react-native";
+import { View, Text, Platform, TouchableOpacity, Image, ActivityIndicator } from "react-native";
 import { ScaledSheet } from "react-native-size-matters";
 import colors from "@utils/colors";
 import { getHeightByPercent } from "@utils/size";
@@ -8,28 +8,47 @@ import TextInputHealer from "@components/TextInputHealer";
 import SvgUser from "@svgs/SignIn/SvgUser";
 import SvgLock from "@svgs/SignIn/SvgLock";
 import SvgEmail from "@svgs/SignUp/SvgEmail";
-import SvgLine from "@svgs/SignIn/SvgLine";
+import SvgStar from "@svgs/SvgStar";
 import ButtonPrimary from "@components/ButtonPrimary";
 import { getBottomSpace } from "react-native-iphone-x-helper";
 import SvgSmallHeart from "@svgs/ForgotPassword/SvgSmallHeart";
 import ROUTES from "@utils/routes";
-import SvgSignUp from "@svgs/SignUp/SvgSignUp";
+import SvgFamily from "@svgs/SignUp/SvgFamily";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { getStatusBarHeight } from "@utils/StatusBar";
 import { widthScreen } from "@utils/dimensions";
+import { useForm, Controller } from "react-hook-form";
 import { useNavigation } from "@react-navigation/native";
 import Container from "@components/Container";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useSelector, useDispatch } from 'react-redux';
 import { signUpUser } from '../../store/slices/ParentSlice'
+import { yupResolver } from '@hookform/resolvers/yup';
+import * as yup from 'yup';
 
 const SignUp = memo(() => {
   const { navigate } = useNavigation();
   const { top } = useSafeAreaInsets();
-  const [userName, setUserName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [rePassword, setRePassword] = useState("");
+
+  const schema = yup.object().shape({
+    name: yup.string().required('Name is required'),
+    email: yup.string().email('Invalid email').required('Email is required'),
+    password: yup.string().min(6, 'Password must be at least 6 characters').required('Password is required'),
+    family_name: yup.string().required('Family name is required'),
+  });
+
+  
+
+  const { control, handleSubmit, formState: {errors} } = useForm({
+    resolver: yupResolver(schema),
+    defaultValues: {
+      name: '',
+      email: '',
+      password: '',
+      family_name: ''
+    }
+  });
+  const [isLoading, setIsLoading] = useState(false); // New state for loading indicator
 
   const dispatch = useDispatch();
   const isLoggedIn = useSelector((state) => state.parent);
@@ -38,17 +57,16 @@ const SignUp = memo(() => {
     navigate(ROUTES.SignIn);
   }, []);
 
-  const onSignUp = useCallback(() => {
-    dispatch(signUpUser({
-      name: "Abdiwali",
-      email: "abdi@gmail.com",
-    password: "8723987293",
-    family_name: "Gelle"
-    }));
-    console.log('isLoggedIn', isLoggedIn)
-    // navigate(ROUTES.SignIn);
+  const onSignUp = useCallback((data) => {
+    setIsLoading(true); // Start loading
+   
+    dispatch(signUpUser(data));
+    setTimeout(() => {
+      setIsLoading(false); // Stop loading
+    }, 3000);
     
-  }, []);
+    
+  }, [dispatch, isLoggedIn]);
 
   const onFaceBook = useCallback(() => {}, []);
 
@@ -60,6 +78,10 @@ const SignUp = memo(() => {
       paddingTop={false}
       style={styles.container}
     >
+        {isLoading ? ( // If loading state is true, show loading indicator
+        <ActivityIndicator size="large" color={colors.blue} style={styles.indicator}/> // Loading indicator
+      ) : (
+        <>
       <View style={styles.svgView} />
       <KeyboardAwareScrollView
         enableOnAndroid
@@ -71,38 +93,75 @@ const SignUp = memo(() => {
         showsVerticalScrollIndicator={false}
         scrollEventThrottle={16}
       >
-        <SvgSignUp style={styles.svg} />
+        <Image source={require("@assets/SignUp/family.png")}  style={styles.familyImage} />
         <View style={[styles.contentView]}>
           <Text style={styles.txtJoin}>Manage Your Familyga!</Text>
           <Text style={styles.txtVacation}>One app, one family</Text>
+          <Controller
+        control={control}
+        name="name"
+        render={({ field: { onChange, onBlur, value } }) => (
           <TextInputHealer
             style={styles.txtInput1}
             svg={<SvgUser />}
-            placeholder={"Username/Phonenumber"}
-            value={userName}
+            placeholder={"Name"}
+            onBlur={onBlur}
+            onChangeText={onChange}
+            value={value}
           />
+        )}
+      />
+      {errors.name && <Text style={styles.error}>{errors.name.message}</Text>}
+
+
+       <Controller
+        control={control}
+        name="email"
+        render={({ field: { onChange, onBlur, value } }) => (
           <TextInputHealer
             style={styles.txtInput2}
             svg={<SvgEmail />}
             placeholder={"Email"}
-            value={email}
+            onBlur={onBlur}
+            onChangeText={onChange}
+            value={value}
           />
+        )}
+      />
+            {errors.email && <Text style={styles.error}>{errors.email.message}</Text>}
+
+      <Controller
+        control={control}
+        name="password"
+        render={({ field: { onChange, onBlur, value } }) => (
           <TextInputHealer
             style={styles.txtInput2}
             svg={<SvgLock />}
             placeholder={"Password"}
-            secure={true}
-            value={password}
+            onBlur={onBlur}
+            onChangeText={onChange}
+            value={value}
           />
+        )}
+      />
+{errors.password && <Text style={styles.error}>{errors.password.message}</Text>}
+      <Controller
+        control={control}
+        name="family_name"
+        render={({ field: { onChange, onBlur, value } }) => (
           <TextInputHealer
             style={styles.txtInput2}
-            svg={<SvgLock />}
-            placeholder={"Re-Password"}
-            secure={true}
-            value={rePassword}
+            svg={<SvgStar />}
+            placeholder={"Family Name"}
+            onBlur={onBlur}
+            onChangeText={onChange}
+            value={value}
           />
+        )}
+      />
+      {errors.family_name && <Text style={styles.error}>{errors.family_name.message}</Text>}
           <ButtonPrimary
-            onPress={onSignUp}
+            onPress={handleSubmit(onSignUp)}
             style={styles.signUp}
             title={"Sign Up"}
           />
@@ -131,6 +190,8 @@ const SignUp = memo(() => {
           <Text style={styles.textSignIn}>Sign In </Text>
         </TouchableOpacity>
       </View>
+      </>
+      )}
     </Container>
   );
 });
@@ -147,6 +208,11 @@ const styles = ScaledSheet.create({
     marginTop: Platform.OS === "ios" ? getStatusBarHeight() : 0,
     marginBottom: -3,
   },
+  error: {
+    color: 'red',
+    fontSize: '14@s',
+    marginTop: '5@s',
+  },
   signIn: {
     fontFamily: FONTS.HIND.SemiBold,
     fontWeight: "500",
@@ -156,6 +222,22 @@ const styles = ScaledSheet.create({
     position: "absolute",
     top: 56,
     right: 21,
+  },
+  indicator: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    height: 80,
+  },
+  familyImage: {
+    width: widthScreen,
+    height: getHeightByPercent(30),
+    alignSelf: "center",
+    marginTop: Platform.OS === "ios" ? getStatusBarHeight() : 0,
+    
+    marginBottom: -40,
+    
+    
   },
   contentView: {
     backgroundColor: colors.white,

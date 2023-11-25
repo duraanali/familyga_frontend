@@ -18,13 +18,13 @@ import SvgDelete from "@svgs/SvgDelete";
 const KidItem = (props) => {
   const {
     style,
-    imgDoctor,
+    image,
     name,
     dob,
     school,
-    teacher,
     rating,
-    doctor,
+    childrenAndDoctors,
+    childrenAndTeachers,
     onCall,
     onMessage,
     activeRemove,
@@ -32,7 +32,6 @@ const KidItem = (props) => {
     onPress,
     onLocation,
   } = props;
-
   const buttonDelete = (color, backgroundColor, x, progress) => {
     const trans = progress.interpolate({
       inputRange: [0, 1],
@@ -48,12 +47,13 @@ const KidItem = (props) => {
     );
   };
 
+  console.log("childrenAndDoctors", childrenAndDoctors);
   const ageCalculator = (dob) => {
     var today = new Date();
     var birthDate = new Date(dob);
     var age = today.getFullYear() - birthDate.getFullYear();
     return age;
-    };
+  };
 
   const renderRightActions = (progress) => {
     return (
@@ -74,26 +74,53 @@ const KidItem = (props) => {
       renderRightActions={activeRemove ? renderRightActions : null}
     >
       <TouchableOpacity
+        // pass child id to onPress
         onPress={onPress}
         activeOpacity={0.6}
         style={[styles.doctorItem, style]}
       >
-        <Image style={styles.imgDoctor} source={imgDoctor} />
+        {image && (
+          <Image
+            style={styles.imgDoctor}
+            source={{
+              uri: image,
+            }}
+          />
+        )}
+        {!image && (
+          <Image
+            style={styles.imgDoctor}
+            source={require("@assets/ResultFindDoctor/04.png")}
+          />
+        )}
         <View style={styles.rateView}>
           <Text style={styles.txtkidName}>{name}</Text>
-   
         </View>
-        {dob && <Text style={styles.txtdob}>{dob} - {ageCalculator(dob)} years old</Text>}
+        {dob && (
+          <Text style={styles.txtdob}>
+            {dob} - {ageCalculator(dob)} years old
+          </Text>
+        )}
         <TouchableOpacity
           onPress={onLocation}
           activeOpacity={0.6}
           style={styles.locationView}
         >
-         <View>
-         {doctor && <Text style={styles.txtLocation}>Doctor: {doctor}</Text> }
-         {school && <Text style={styles.txtLocation}>School: {school}</Text> }
-            {teacher &&  <Text style={styles.txtLocation}>Teacher: {teacher}</Text> }
-            </View>
+          <View>
+            {childrenAndDoctors && childrenAndDoctors.length > 0 && (
+              <Text style={styles.txtLocation}>
+                Doctor(s):{" "}
+                {childrenAndDoctors.map((item) => item.doctor.name).join(", ")}
+              </Text>
+            )} 
+
+            {childrenAndTeachers && childrenAndTeachers.length > 0 && (
+              <Text style={styles.txtLocation}>
+                Teacher(s):{" "}
+                {childrenAndTeachers.map((item) => item.teacher.name).join(", ")}
+              </Text>
+            ) }
+          </View>
         </TouchableOpacity>
       </TouchableOpacity>
     </Swipeable>

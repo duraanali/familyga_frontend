@@ -19,6 +19,8 @@ import { useNavigation } from "@react-navigation/native";
 import keyExtractor from "@utils/keyExtractor";
 import AppointmentListItem from "@components/AppointmentListItem";
 import { useSelector, useDispatch } from 'react-redux';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 const MainPage = memo(() => {
   const { navigate } = useNavigation();
   const dispatch = useDispatch();
@@ -65,8 +67,22 @@ const MainPage = memo(() => {
     },
   ];
 
+  // const removeAppKeys = async () => {
+  //   let keys = []
+  //   try {
+  //     keys = await AsyncStorage.getAllKeys()
+  //     console.log(`Keys: ${keys}`) // Just to see what's going on
+  //     await AsyncStorage.multiRemove(keys)
+  //   } catch(e) {
+  //    console.log(e)
+  //   }
+  //   console.log('Done')
+  // }
+
+
   useEffect(() => {
-    if (parent.isLoggedIn) {
+    // removeAppKeys();
+    if (parent && parent.isLoggedIn) {
       setUser(parent.parent.user);
     }
   }, [parent.isLoggedIn]);

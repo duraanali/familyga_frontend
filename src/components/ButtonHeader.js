@@ -22,7 +22,7 @@ const ButtonHeader = memo((props) => {
   };
   return (
     <TouchableOpacity style={btnStyle} onPress={onPressButton}>
-      {children ? children : <SvgBackArrow />}
+      {children ? children : <SvgBackArrow width={15} height={15} />}
     </TouchableOpacity>
   );
 });

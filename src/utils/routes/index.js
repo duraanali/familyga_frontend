@@ -91,5 +91,7 @@ const ROUTES = {
   Kids: 'Kids',
   KidProfile: 'KidProfile',
   KidInformation: 'KidInformation',
+  AddKid: 'AddKid',
+  EditKid: 'EditKid',
 };
 export default ROUTES;

@@ -4,7 +4,7 @@ import { ScaledSheet } from "react-native-size-matters";
 import colors from "@utils/colors";
 import KidItem from "@components/KidItem";
 import keyExtractor from "@utils/keyExtractor";
-
+import SvgAdd from "@svgs/CreateAccount/SvgAdd";
 import ROUTES from "@utils/routes";
 import { ConfirmDialog } from "react-native-simple-dialogs";
 import FONTS from "@utils/fonts";
@@ -12,54 +12,25 @@ import { useNavigation } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useSelector, useDispatch } from 'react-redux';
 import { useFetchKidsQuery } from "../../store/slices/KidSlice";
-const LIST_KIDS_DATA = [
-  {
-    imgDoctor: require("@assets/ResultFindDoctor/01.png"),
-    kidName: "Uthmaan Ahmed",
-    dob: "04/16/2014",
-    doctor: "Dr. Jose Holland",
-    school: "St. Joseph High School",
-    teacher: "Ms. Jane Doe",
-  },
-  {
-    imgDoctor: require("@assets/ResultFindDoctor/02.png"),
-    kidName: "Nasteexo Ahmed",
-    dob: "08/23/2017",
-    doctor: "Dr. Jose Holland",
-    school: "St. Joseph High School",
-    teacher: "Ms. Jane Doe",
-  },
-  {
-    imgDoctor: require("@assets/ResultFindDoctor/03.png"),
-    kidName: "Dahabo Ahmed",
-    dob: "06/21/2020",
-    doctor: "Dr. Jose Holland",
-    school: "St. Joseph High School",
-    teacher: "Ms. Jane Doe",
-  },
-
-];
+import LoadingScreen from "@components/LoadingScreen";
+import EmptyData from "@components/EmptyData";
 
 const Kids = memo(() => {
   const { navigate } = useNavigation();
   const { top, bottom } = useSafeAreaInsets();
-  const [listDoctorsData, setListDoctorsData] = useState({});
-  const [visible, setVisible] = useState(false);
-  const dispatch = useDispatch();
-  const { data: kids, error, isLoading  } = useFetchKidsQuery();
-  console.log('listKids', listDoctorsData)
-  const onTouchOutside = useCallback(() => {
-    setVisible(false);
-  }, []);
+  const [listDoctorsData, setListDoctorsData] = useState();
+  const { data: kids, error, isLoading, refetch  } = useFetchKidsQuery();
 
   useEffect(() => {
+    refetch();
     if (kids) {
       setListDoctorsData(kids.children);
     }
-  }, []);
+   refetch();
+  }, [isLoading, kids]);
 
-  const onKidProfile = useCallback(() => {
-    navigate(ROUTES.KidProfile);
+  const onKidProfile = useCallback((childData) => {
+    navigate(ROUTES.KidProfile, { childData });
   }, []);
 
   const onCallDoctor = useCallback(() => {
@@ -77,68 +48,61 @@ const Kids = memo(() => {
   const renderItem = useCallback(
     ({ item }) => {
       const {
-        imgDoctor,
+        image,
         name,
         dob,
         school,
         teacher,
         rating,
         doctor,
+        childrenAndTeachers,
+        childrenAndDoctors
       } = item;
       return (
         <KidItem
-          activeRemove={true}
-          imgDoctor={imgDoctor}
+          // activeRemove={true}
+          image={image}
           name={name}
           dob={dob}
             school={school}
-            teacher={teacher}
+            childrenAndTeachers={childrenAndTeachers}
           rating={rating}
-          doctor={doctor}
-          onRemove={() => setVisible(!visible)}
-          onPress={onKidProfile}
+          childrenAndDoctors={childrenAndDoctors}
+          // onRemove={() => setVisible(!visible)}
+          onPress={() => onKidProfile(item)}
           onCall={onCallDoctor}
           onMessage={onDoctorMessage}
           ondoctor={ondoctor}
         />
       );
     },
-    [onKidProfile, onDoctorMessage, onCallDoctor, visible]
+    [onKidProfile, onDoctorMessage, onCallDoctor]
   );
 
   return (
     <View style={styles.container}>
-      <FlatList
-        data={listDoctorsData}
-        renderItem={renderItem}
-        keyExtractor={keyExtractor}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={[
-          styles.contentContainerStyle,
-          { top: top - 20, paddingBottom: bottom + 230 },
-        ]}
-      />
-      <ConfirmDialog
-        dialogStyle={styles.dialogStyle}
-        title="Delete Doctor"
-        message="Do you want delete doctor
-        Jose Holland on list?"
-        visible={visible}
-        messageStyle={styles.messageStyle}
-        onTouchOutside={onTouchOutside}
-        positiveButton={{
-          title: "Done",
-          onPress: () => setVisible(false),
-          style: styles.positiveButton,
-          titleStyle: styles.txtPositiveButton,
-        }}
-        negativeButton={{
-          title: "Cancel",
-          onPress: () => setVisible(false),
-          style: styles.negativeButton,
-          titleStyle: styles.txtNegativeButton,
-        }}
-      />
+     {isLoading ? (
+        <LoadingScreen />
+      ) : (
+        <>
+        {(!listDoctorsData || listDoctorsData.length === 0) ? (
+          <EmptyData message="Oh no! You haven't added kids yet!" route={ROUTES.AddKid} buttonTitle="Add Kid" />
+        ) : (
+          <FlatList
+            data={listDoctorsData}
+            renderItem={renderItem}
+            keyExtractor={keyExtractor}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={[
+              styles.contentContainerStyle,
+              { paddingTop: top - 20, paddingBottom: bottom + 230 },
+            ]}
+          />
+          
+        )}
+        </>
+      )}
+   
     </View>
   );
 });

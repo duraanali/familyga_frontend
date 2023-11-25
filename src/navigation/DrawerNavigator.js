@@ -20,9 +20,14 @@ const Drawer = createDrawerNavigator();
 const SCREENS = [
   { id: 0, label: "Home" },
   { id: 1, label: "Kids" },
-  { id: 3, label: "Appointments" },
-  { id: 4, label: "To Do" },
-  { id: 7, label: "Log out" },
+  { id: 2, label: "Appointments" },
+  { id: 3, label: "Hospitals" },
+  { id: 4, label: "Schools" },
+  { id: 5, label: "Doctors" },
+  { id: 6, label: "Teachers"},
+  { id: 7, label: "To Do" },
+  { id: 8, label: "Profile" },
+  { id: 9, label: "Log out" },
 ];
 
 const DrawerNavigator = memo(() => {
@@ -34,21 +39,35 @@ const DrawerNavigator = memo(() => {
   const parent = useSelector((state) => state.parent); // Accessing parent state
 
   useEffect(() => {
-    if (parent.isLoggedIn) {
+    if (parent && parent.isLoggedIn) {
       setUser({
         avatar: require("@assets/Menu/Avatar.png"),
         userName: parent.parent.user.name,
       });
     }
   }, [parent.isLoggedIn]);
+
+  const removeAppKeys = async () => {
+    let keys = []
+    try {
+      keys = await AsyncStorage.getAllKeys()
+      console.log(`Keys: ${keys}`) // Just to see what's going on
+      await AsyncStorage.multiRemove(keys)
+    } catch(e) {
+     console.log(e)
+    }
+    console.log('Done')
+  }
+
   const handleLogout = (props) => {
     dispatch(logoutUser()); // Dispatch logoutUser action
+    removeAppKeys();
     props.navigation.navigate(ROUTES.SignIn); // Navigate to SignIn screen or any other screen as needed
   };
 
   const onNavigate = (key, props) => {
 
-    if (key === 7) { // Assuming '7' is the ID for the Logout option
+    if (key === 9) { // Assuming '7' is the ID for the Logout option
       handleLogout(props);
     }
 

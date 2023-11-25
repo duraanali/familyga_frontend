@@ -1,5 +1,5 @@
 import React, { memo, useCallback, useState } from "react";
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity, ActivityIndicator } from "react-native";
 import { ScaledSheet } from "react-native-size-matters";
 import colors from "@utils/colors";
 import SvgHeart from "@svgs/SignIn/SvgHeart";
@@ -16,40 +16,70 @@ import Container from "@components/Container";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import PolicyCheck from "@components/PolicyCheck";
+import { useForm, Controller } from "react-hook-form";
 import useToggle from "@hooks/useToggle";
-import { useSelector, useDispatch } from 'react-redux';
-import { loginUser } from '../../store/slices/ParentSlice'
+import { useSelector, useDispatch } from "react-redux";
+import { loginUser } from "../../store/slices/ParentSlice";
+import { yupResolver } from '@hookform/resolvers/yup';
+import * as yup from 'yup';
 
 const SignIn = memo(() => {
   const { navigate } = useNavigation();
+  const { top } = useSafeAreaInsets();
   const { bottom } = useSafeAreaInsets();
-  const dispatch = useDispatch();
-  const [check, setCheck] = useToggle(false);
+  
+  const schema = yup.object().shape({
+    email: yup.string().email('Invalid email').required('Email is required'),
+    password: yup.string().min(6, 'Password must be at least 6 characters').required('Password is required'),
+  });
 
-  const [userName, setUserName] = useState("");
-  const [password, setPassword] = useState("");
+  
+
+  const { control, handleSubmit, formState: {errors} } = useForm({
+    resolver: yupResolver(schema),
+    defaultValues: {
+      email: '',
+      password: '',
+    }
+  });
+  const [isLoading, setIsLoading] = useState(false); // New state for loading indicator
+
+  const dispatch = useDispatch();
+  const isLoggedIn = useSelector((state) => state.parent);
+
+  const onSignIn = useCallback((data) => {
+    setIsLoading(true); // Start loading
+   console.log("LOGIN DATA", data)
+    dispatch(loginUser(data)).then((res) => {
+      console.log("RES", res)
+      
+    }, (error) => {
+      console.log("ERROR", error)
+    }
+    );
+
+    setTimeout(() => {
+      setIsLoading(false); // Stop loading
+    }, 3000);
+    
+    
+  }, [dispatch, isLoggedIn]);
+
+  const onFaceBook = useCallback(() => {}, []);
+
+  const onGoogle = useCallback(() => {}, []);
 
   const onSignUp = useCallback(() => {
     navigate(ROUTES.SignUp);
   }, []);
 
-  const onForgotPassword = useCallback(() => {
-    navigate(ROUTES.ForgotPassword);
-  }, []);
-
-  const onSignIn = useCallback(() => {
-    dispatch(loginUser({
-      email: "abdiwalighg13@gmail.com",
-    password: "8723987293",
-    }));
-    // navigate(ROUTES.SignIn);
-    
-  }, []);
-
-  const onPress = useCallback(() => {}, []);
 
   return (
     <Container style={styles.container}>
+       {isLoading ? ( // If loading state is true, show loading indicator
+        <ActivityIndicator size="large" color={colors.blue} style={styles.indicator}/> // Loading indicator
+      ) : (
+        <>
       <View style={styles.svgHeart}>
         <SvgHeart />
       </View>
@@ -60,32 +90,50 @@ const SignIn = memo(() => {
         contentContainerStyle={styles.contentContainerStyle}
       >
         <Text style={styles.txtWelcome}>Welcome to Familyga</Text>
-        <TextInputHealer
-          svg={<SvgUser />}
-          placeholder={"Email"}
-          value={userName}
-        />
-        <TextInputHealer
-          style={styles.txtInput2}
-          svg={<SvgLock />}
-          placeholder={"Password"}
-          secure={true}
-          value={password}
-        />
-        <PolicyCheck check={check} onPress={setCheck} />
+        <Controller
+        control={control}
+        name="email"
+        render={({ field: { onChange, onBlur, value } }) => (
+          <TextInputHealer
+            style={styles.txtInput1}
+            svg={<SvgUser />}
+            placeholder={"Email"}
+            onBlur={onBlur}
+            onChangeText={onChange}
+            value={value}
+          />
+        )}
+      />
+      {errors.email && <Text style={styles.emailerror}>{errors.email.message}</Text>}
+      <Controller
+        control={control}
+        name="password"
+        render={({ field: { onChange, onBlur, value } }) => (
+          <TextInputHealer
+            style={styles.txtInput2}
+            svg={<SvgLock />}
+            placeholder={"Password"}
+            onBlur={onBlur}
+            onChangeText={onChange}
+            value={value}
+          />
+        )}
+      />
+      {errors.password && <Text style={styles.passworderror}>{errors.password.message}</Text>}
+        {/* <PolicyCheck check={check} onPress={setCheck} /> */}
         <View style={styles.signInView}>
           <ButtonPrimary
-            onPress={onSignIn}
+            onPress={handleSubmit(onSignIn)}
             style={styles.signIn}
             title={"Sign In"}
-            disable={!check}
+            // disable={!check}
           />
           {/* <TouchableOpacity activeOpacity={0.7} style={styles.viewFaceId}>
             <SvgFaceID />
           </TouchableOpacity> */}
         </View>
         <TouchableOpacity
-          onPress={onForgotPassword}
+          onPress={onSignIn}
           style={styles.forgotPasswordView}
         >
           <Text style={styles.txtForgotPassword}>Forgot password?</Text>
@@ -96,16 +144,18 @@ const SignIn = memo(() => {
           <View style={styles.line} />
         </View>
         <ButtonPrimary
-          onPress={onPress}
+          onPress={onFaceBook}
           style={styles.facebook}
           title={"Sign In With Facebook"}
         />
         <ButtonPrimary
-          onPress={onPress}
+          onPress={onGoogle}
           style={styles.google}
           title={"Sign In With Google"}
         />
       </KeyboardAwareScrollView>
+      </>
+      )}
       <HideWithKeyboard
         style={[styles.signUpView, { paddingBottom: bottom + 8 }]}
       >
@@ -113,6 +163,7 @@ const SignIn = memo(() => {
           <Text style={styles.txtSignUp}>Don’t Have Account? Sign UP</Text>
         </TouchableOpacity>
       </HideWithKeyboard>
+      
     </Container>
   );
 });
@@ -128,6 +179,24 @@ const styles = ScaledSheet.create({
   svgHeart: {
     marginTop: 12,
     marginBottom: 8,
+  },
+  passworderror: {
+    color: 'red',
+    fontSize: '14@s',
+    marginLeft: '15@s',
+    marginBottom: '10@s',
+    marginTop: '-15@s',
+  },
+  emailerror: {
+    color: 'red',
+    fontSize: '14@s',
+    marginLeft: '15@s',
+  },
+  indicator: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    height: 80,
   },
   svgHumanView: {
     height: 177,
@@ -165,7 +234,6 @@ const styles = ScaledSheet.create({
     alignItems: "center",
   },
   signInView: {
-    
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",

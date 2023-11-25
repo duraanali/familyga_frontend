@@ -1,9 +1,10 @@
-import React, { memo, useState, useCallback } from "react";
+import React, { memo, useState, useCallback, useEffect } from "react";
 import {
   View,
   Text,
   ScrollView,
   Image,
+  Alert,
   TouchableOpacity,
   Platform,
 } from "react-native";
@@ -29,6 +30,7 @@ import Content from "@components/Content";
 import SvgDrug from "@svgs/ListDrugs/SvgDrug";
 import SvgHospital from "@svgs/MainPage/SvgHospital";
 import SvgUser from "@svgs/SignIn/SvgUser";
+import { useFetchKidQuery, useDeleteKidMutation } from "../../../store/slices/KidSlice";
 
 const DOCTOR_DATA = {
   imgKid: require("@assets/Kid/Kid.png"),
@@ -39,13 +41,63 @@ const DOCTOR_DATA = {
   teacher: "Ms. Jane Doe",
 };
 
-const KidProfile = memo(({}) => {
+const KidProfile = memo((route) => {
   const { navigate, goBack } = useNavigation();
+  const { childData } = route.route.params;
   const { top } = useSafeAreaInsets();
   const [kidData, setKidData] = useState(DOCTOR_DATA);
+  const [KidNow, setKidNow] = useState({});
+  const [doctors, setDoctors] = useState();
+  const [teachers, setTeachers] = useState();
+  const { data: kid, error, isLoading, refetch } = useFetchKidQuery(childData.id);
+  const [deleteKid, { isSuccess: isDeleteSuccess }] = useDeleteKidMutation();
 
-  const onAppointment = useCallback(() => {
-    navigate(ROUTES.BookAppointment);
+  useEffect(() => {
+    // If kid is deleted successfully, navigate to the kids list
+    if (isDeleteSuccess) {
+      navigate(ROUTES.Kids);
+    }
+  }, [isDeleteSuccess, navigate]);
+
+
+
+  useEffect(() => {
+    refetch();
+    if (kid && kid.kid) {
+      setKidNow(kid.kid);
+      setDoctors(kid.kid.childrenAndDoctors);
+      setTeachers(kid.kid.childrenAndTeachers);
+
+    }
+  }, [isLoading, kid]);
+
+  const onEditProfile = useCallback(() => {
+    navigate(ROUTES.EditKid, { childData });
+  }, []);
+
+  const onDelete = useCallback(() => {
+    Alert.alert(
+      "Confirm Delete",
+      "Are you sure you want to delete this profile?",
+      [
+        {
+          text: "Cancel",
+          onPress: () => console.log("Cancel Pressed"),
+          style: "cancel"
+        },
+        { 
+          text: "Delete", 
+          onPress: () => {
+            deleteKid(childData.id).unwrap().then((res) => {
+            navigate(ROUTES.Kids);
+            console.log("Delete success:", res.data)
+            }
+            );
+          } 
+        }
+      ],
+      { cancelable: false }
+    );
   }, []);
 
   const onSchool = useCallback(() => {
@@ -68,15 +120,21 @@ const KidProfile = memo(({}) => {
     navigate(ROUTES.DoctorReview);
   }, []);
 
-  
+  const ageCalculator = (dob) => {
+    var today = new Date();
+    var birthDate = new Date(dob);
+    var age = today.getFullYear() - birthDate.getFullYear();
+    return age;
+    };
+
 
   const renderItem = useCallback(() => {
     return kidData.doctorServices.map((item, index) => {
       return (
         <TouchableOpacity onPress={onWorkingAddress} style={styles.container}>
-        <Text style={styles.txtTitle}>{item.title}</Text>
-      </TouchableOpacity>
-      )
+          <Text style={styles.txtTitle}>{item.title}</Text>
+        </TouchableOpacity>
+      );
     });
   }, [kidData.doctorServices]);
 
@@ -86,27 +144,64 @@ const KidProfile = memo(({}) => {
         <View style={[styles.headerView, { paddingTop: top + 24 }]}>
           <View style={styles.header}>
             <View style={styles.setRow}>
-              <Text style={styles.kidName}>{kidData.kidName}</Text>
+              <Text style={styles.kidName}>{KidNow.name}</Text>
               <View style={styles.rateView}>
-                <Text style={styles.specialized}>{kidData.dob}</Text>
-                <Text style={styles.txtRating}>  - 7 years old </Text>
+                {KidNow.dob && <Text style={styles.specialized}>{KidNow.dob}</Text> }
+                {KidNow.dob && <Text style={styles.txtRating}> - {ageCalculator(KidNow.dob)} years old</Text> }
+                {!KidNow.dob && <Text style={styles.txtRating}> No DOB </Text> }
               </View>
-              <Text style={styles.txtTitle}>Doctor: {kidData.doctor}</Text>
-              <Text style={styles.txtTitle}>Teacher: {kidData.teacher}</Text>
-              
+              {doctors && doctors.length > 0 ? (
+                <Text style={styles.txtTitle}>
+                  Doctor(s):{" "}
+                  {doctors.map((item, index) => (
+                    <Text key={index}>
+                      {item.doctor.name}
+                      {index < doctors.length - 1 ? ", " : ""}
+                    </Text>
+                  ))}
+                </Text>
+              ) : (
+                <Text style={styles.txtTitle}>No Doctor Assigned</Text>
+              )}
+              {teachers && teachers.length > 0 ? (
+                <Text style={styles.txtTitle}>
+                  Teacher(s):{" "}
+                  {teachers.map((item, index) => (
+                    <Text key={index}>
+                      {item.teacher.name}
+                      {index < teachers.length - 1 ? ", " : ""}
+                    </Text>
+                  ))}
+                </Text>
+              ) : (
+                <Text style={styles.txtTitle}>No Teacher Assigned</Text>
+              )}
             </View>
-            <Image style={styles.imgKid} source={kidData.imgKid} />
+            {KidNow.image && (
+              <Image
+                style={styles.imgKid}
+                source={{
+                  uri: KidNow.image,
+                }}
+              />
+            )}
+
+            {!KidNow.image && (
+              <Image
+                style={styles.imgKid}
+                source={require("@assets/ResultFindDoctor/02.png")}
+              />
+            )}
           </View>
           <View style={styles.buttonsView}>
-        
-              <ButtonPrimary
-              onPress={onAppointment}
+            <ButtonPrimary
+              onPress={onEditProfile}
               style={styles.buttonPrimary}
               title={"Edit Profile"}
               titleStyle={styles.txtBtn}
             />
-              <ButtonPrimary
-              onPress={onAppointment}
+            <ButtonPrimary
+              onPress={onDelete}
               style={styles.buttonDanger}
               title={"Delete"}
               titleStyle={styles.txtBtn}
@@ -120,34 +215,32 @@ const KidProfile = memo(({}) => {
           </TouchableOpacity>
         </View>
         <View style={styles.doctorServices}>
-          
-       
-        <TopicItem
-          Svg={<SvgUser />}
-          title={"Personal Infomation"}
-          onPress={onKidInformation}
-        />
-        <TopicItem
-          Svg={<SvgPoint width={21} height={20} />}
-          title={`Appointments`}
-          onPress={onAppointment}
-        />
-        <TopicItem
-          Svg={<SvgDrug width={18} height={20} color={colors.green} />}
-          title={"Medications"}
-          onPress={onMedication}
-        />
-      <TopicItem
-          Svg={<SvgHospital width={18} height={20} color={colors.green} />}
-          title={"Hospitals"}
-          onPress={onHospital}
-        />
-        <TopicItem
-          Svg={<SvgLocation width={18} height={20} color={colors.green} />}
-          title={"Schools"}
-          onPress={onSchool}
-        />
-         </View>
+          <TopicItem
+            Svg={<SvgUser />}
+            title={"Personal Infomation"}
+            onPress={onKidInformation}
+          />
+          <TopicItem
+            Svg={<SvgPoint width={21} height={20} />}
+            title={`Appointments`}
+            onPress={onEditProfile}
+          />
+          <TopicItem
+            Svg={<SvgDrug width={18} height={20} color={colors.green} />}
+            title={"Medications"}
+            onPress={onMedication}
+          />
+          <TopicItem
+            Svg={<SvgHospital width={18} height={20} color={colors.green} />}
+            title={"Hospitals"}
+            onPress={onHospital}
+          />
+          <TopicItem
+            Svg={<SvgLocation width={18} height={20} color={colors.green} />}
+            title={"Schools"}
+            onPress={onSchool}
+          />
+        </View>
       </Content>
     </Container>
   );

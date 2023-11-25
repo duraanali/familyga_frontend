@@ -12,7 +12,10 @@ import SignUp from "@screens/SignUp";
 import ForgotPassword from "@screens/ForgotPassword";
 import kids from "@screens/Kids";
 import KidProfile from "@screens/Kids/KidProfile";
+import AddKid from "@screens/Kids/AddKid";
+import EditKid from "@screens/Kids/EditKid";
 import { useSelector } from "react-redux";
+import SvgAdd from "@svgs/CreateAccount/SvgAdd";
 
 import DashBoard from "@screens/DashBoard";
 
@@ -37,8 +40,19 @@ const Stacks = memo(() => {
           <Stack.Screen
             name={ROUTES.KidProfile}
             component={KidProfile}
+            
             options={{ headerShown: false }}
           />
+           <Stack.Screen
+          name={ROUTES.AddKid}
+          component={AddKid}
+          options={{ headerShown: false }}
+        />
+         <Stack.Screen
+          name={ROUTES.EditKid}
+          component={EditKid}
+          options={{ headerShown: false }}
+        />
           <Stack.Screen
             name={ROUTES.KidInformation}
             component={PersonalInfo}
@@ -55,12 +69,20 @@ const Stacks = memo(() => {
           <Stack.Screen
             name={ROUTES.Kids}
             component={kids}
-            options={{
+            options={({ navigation }) => ({
               headerTitleAlign: "center",
               headerTitle: () => <HeaderTitle title={"Your Kids"} />,
               headerLeft: () => <ButtonHeader />,
+              headerRight: () => (
+                <ButtonHeader
+                children={<SvgAdd width={15} height={15} />}
+                  onPress={() => {
+                    navigation.navigate(ROUTES.AddKid);
+                  }}
+                />
+              ),
               headerBackground: () => <HeaderBackGround />,
-            }}
+            })}
           />
 
           <Stack.Screen
