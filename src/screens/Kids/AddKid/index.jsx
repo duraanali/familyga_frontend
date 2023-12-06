@@ -400,7 +400,7 @@ const AddKid = memo(() => {
                   style={styles.picker}
                   onValueChange={(itemValue, itemIndex) => onChange(itemValue)}
                 >
-                  <Picker.Item label="Select Gender" value="" />
+                  <Picker.Item label="Select Doctor" value="" />
                   {listDoctorsData &&
                     listDoctorsData?.map((doctor) => (
                       <Picker.Item label={doctor.name} value={doctor.id} />

@@ -80,12 +80,12 @@ const MainPage = memo(() => {
   // }
 
 
-  useEffect(() => {
-    // removeAppKeys();
-    if (parent && parent.isLoggedIn) {
-      setUser(parent.parent.user);
-    }
-  }, [parent.isLoggedIn]);
+  // useEffect(() => {
+  //   // removeAppKeys();
+  //   if (parent && parent.isLoggedIn) {
+  //     setUser(parent.parent.user);
+  //   }
+  // }, [parent.isLoggedIn]);
 
   const renderAppointment = React.useCallback(({ item }) => {
     const {

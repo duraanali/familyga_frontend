@@ -29,6 +29,7 @@ import * as yup from 'yup';
 const SignUp = memo(() => {
   const { navigate } = useNavigation();
   const { top } = useSafeAreaInsets();
+  const [signUpError, setSignUpError] = useState('');
 
   const schema = yup.object().shape({
     name: yup.string().required('Name is required'),
@@ -58,15 +59,26 @@ const SignUp = memo(() => {
   }, []);
 
   const onSignUp = useCallback((data) => {
-    setIsLoading(true); // Start loading
-   
-    dispatch(signUpUser(data));
-    setTimeout(() => {
-      setIsLoading(false); // Stop loading
-    }, 3000);
-    
-    
-  }, [dispatch, isLoggedIn]);
+    setIsLoading(true);
+    setSignUpError(''); // Reset sign-up error message
+  
+    dispatch(signUpUser(data))
+      .unwrap()
+      .then((res) => {
+        console.log('Sign up successful', res);
+        // Navigate to another screen or do something on successful sign-up
+        setSignUpError(res.payload.message || 'Sign up failed. Please try again.');
+      })
+      .catch((error) => {
+        console.error('Sign up failed:', error);
+        // Set the error message from the response
+        setSignUpError(error.message || 'Sign up failed. Please try again.');
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+  }, [dispatch]);
+  
 
   const onFaceBook = useCallback(() => {}, []);
 
@@ -160,6 +172,8 @@ const SignUp = memo(() => {
         )}
       />
       {errors.family_name && <Text style={styles.error}>{errors.family_name.message}</Text>}
+      {signUpError !== '' && <Text style={styles.signUpError}>{signUpError}</Text>}
+
           <ButtonPrimary
             onPress={handleSubmit(onSignUp)}
             style={styles.signUp}
@@ -212,6 +226,12 @@ const styles = ScaledSheet.create({
     color: 'red',
     fontSize: '14@s',
     marginTop: '5@s',
+  },
+  signUpError: {
+    color: 'red',
+    fontSize: '14@s',
+    marginBottom: '15@s',
+    textAlign: 'center',
   },
   signIn: {
     fontFamily: FONTS.HIND.SemiBold,

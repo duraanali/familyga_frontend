@@ -22,15 +22,18 @@ export const doctorsApi = createApi({
   refetchOnFocus: true,
   refetchOnReconnect: true,
   refetchOnMountOrArgChange: true,
+  tagTypes: ["Doctors"],
   endpoints: (builder) => ({
     // get all kids
     fetchDoctors: builder.query({
       query: () => "/doctors/",
+      providesTags: ["Doctors"],
     }),
 
     // get kid by id
     fetchDoctor: builder.query({
       query: (id) => `/doctors/doctor/${id}/`,
+      providesTags: ["Doctors"],
     }),
 
     // create
@@ -40,6 +43,7 @@ export const doctorsApi = createApi({
         method: "POST",
         body: data,
       }),
+      invalidatesTags: ["Doctors"],
     }),
 
     // update
@@ -49,6 +53,7 @@ export const doctorsApi = createApi({
         method: "PUT",
         body: data,
       }),
+      invalidatesTags: ["Doctors"],
     }),
 
     // delete
@@ -57,15 +62,16 @@ export const doctorsApi = createApi({
         url: `/doctors/delete/${id}/`,
         method: "DELETE",
       }),
+      invalidatesTags: ["Doctors"],
     }),
   }),
 });
 
 // Export the auto-generated hook for the `fetchKids` query endpoint
 export const {
-  useFetchDoctorsQuery,
-  useFetchDoctorQuery,
-  useCreateDoctorMutation,
-  useUpdateDoctorMutation,
-  useDeleteDoctorMutation,
-} = doctorsApi;
+    useFetchDoctorsQuery,
+    useFetchDoctorQuery,
+    useCreateDoctorMutation,
+    useUpdateDoctorMutation,
+    useDeleteDoctorMutation,
+    } = doctorsApi;

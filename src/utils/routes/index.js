@@ -49,6 +49,8 @@ const ROUTES = {
   SetGoal: 'SetGoal',
   GoalSettings: 'GoalSettings',
   Doctors: 'Doctors',
+  AddDoctor: 'AddDoctor',
+  EditDoctor: 'EditDoctor',
   DoctorsTab: 'DoctorsTab',
   DoctorsBottomTab: 'DoctorsBottomTab',
   Nearby: 'Nearby',
@@ -93,5 +95,14 @@ const ROUTES = {
   KidInformation: 'KidInformation',
   AddKid: 'AddKid',
   EditKid: 'EditKid',
+  Hospitals: 'Hospitals',
+  AddHospital: 'AddHospital',
+  EditHospital: 'EditHospital',
+  Schools: 'Schools',
+  AddSchool: 'AddSchool',
+  EditSchool: 'EditSchool',
+  Teachers: 'Teachers',
+  AddTeacher: 'AddTeacher',
+  EditTeacher: 'EditTeacher',
 };
 export default ROUTES;

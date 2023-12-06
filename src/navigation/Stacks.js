@@ -16,15 +16,24 @@ import AddKid from "@screens/Kids/AddKid";
 import EditKid from "@screens/Kids/EditKid";
 import { useSelector } from "react-redux";
 import SvgAdd from "@svgs/CreateAccount/SvgAdd";
-
-import DashBoard from "@screens/DashBoard";
-
 import DrawerNavigator from "@navigation/DrawerNavigator";
 import PersonalInfo from "@screens/Kids/KidProfile/PersonalInfo";
+import Hospitals from "@screens/Hospitals";
+import AddHospital from "@screens/Hospitals/AddHospital";
+import EditHospital from "@screens/Hospitals/EditHospital";
+import EditSchool from "@screens/Schools/EditSchool";
+import AddSchool from "@screens/Schools/AddSchool";
+import Schools from "@screens/Schools";
+import Doctors from "@screens/Doctors";
+import AddDoctor from "@screens/Doctors/AddDoctor";
+import EditDoctor from "@screens/Doctors/EditDoctor";
+import Teachers from "@screens/Teachers";
+import AddTeacher from "@screens/Teachers/AddTeacher";
+import EditTeacher from "@screens/Teachers/EditTeacher";
 
 const Stacks = memo(() => {
-  const isLoggedIn = useSelector((state) => state.parent.isLoggedIn); // Accessing isLoggedIn state
-
+  const isLoggedIn = useSelector((state) => state.authApi.isLoggedIn); // Accessing isLoggedIn state
+  console.log("isLoggedIn", isLoggedIn)
   return (
     <NavigationContainer>
       {isLoggedIn ? (
@@ -40,19 +49,58 @@ const Stacks = memo(() => {
           <Stack.Screen
             name={ROUTES.KidProfile}
             component={KidProfile}
-            
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name={ROUTES.AddKid}
+            component={AddKid}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name={ROUTES.AddHospital}
+            component={AddHospital}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name={ROUTES.AddSchool}
+            component={AddSchool}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name={ROUTES.AddTeacher}
+            component={AddTeacher}
             options={{ headerShown: false }}
           />
            <Stack.Screen
-          name={ROUTES.AddKid}
-          component={AddKid}
-          options={{ headerShown: false }}
-        />
-         <Stack.Screen
-          name={ROUTES.EditKid}
-          component={EditKid}
-          options={{ headerShown: false }}
-        />
+            name={ROUTES.EditTeacher}
+            component={EditTeacher}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name={ROUTES.EditKid}
+            component={EditKid}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name={ROUTES.EditHospital}
+            component={EditHospital}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name={ROUTES.EditSchool}
+            component={EditSchool}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name={ROUTES.EditDoctor}
+            component={EditDoctor}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name={ROUTES.AddDoctor}
+            component={AddDoctor}
+            options={{ headerShown: false }}
+          />
           <Stack.Screen
             name={ROUTES.KidInformation}
             component={PersonalInfo}
@@ -75,7 +123,7 @@ const Stacks = memo(() => {
               headerLeft: () => <ButtonHeader />,
               headerRight: () => (
                 <ButtonHeader
-                children={<SvgAdd width={15} height={15} />}
+                  children={<SvgAdd width={15} height={15} />}
                   onPress={() => {
                     navigation.navigate(ROUTES.AddKid);
                   }}
@@ -84,16 +132,77 @@ const Stacks = memo(() => {
               headerBackground: () => <HeaderBackGround />,
             })}
           />
-
           <Stack.Screen
-            name={ROUTES.DashBoard}
-            component={DashBoard}
-            options={{
+            name={ROUTES.Doctors}
+            component={Doctors}
+            options={({ navigation }) => ({
               headerTitleAlign: "center",
-              headerTitle: () => <HeaderTitle title={"DashBoard"} />,
+              headerTitle: () => <HeaderTitle title={"Doctors"} />,
               headerLeft: () => <ButtonHeader />,
+              headerRight: () => (
+                <ButtonHeader
+                  children={<SvgAdd width={15} height={15} />}
+                  onPress={() => {
+                    navigation.navigate(ROUTES.AddDoctor);
+                  }}
+                />
+              ),
               headerBackground: () => <HeaderBackGround />,
-            }}
+            })}
+          />
+          <Stack.Screen
+            name={ROUTES.Hospitals}
+            component={Hospitals}
+            options={({ navigation }) => ({
+              headerTitleAlign: "center",
+              headerTitle: () => <HeaderTitle title={"Hospitals"} />,
+              headerLeft: () => <ButtonHeader />,
+              headerRight: () => (
+                <ButtonHeader
+                  children={<SvgAdd width={15} height={15} />}
+                  onPress={() => {
+                    navigation.navigate(ROUTES.AddHospital);
+                  }}
+                />
+              ),
+              headerBackground: () => <HeaderBackGround />,
+            })}
+          />
+          <Stack.Screen
+            name={ROUTES.Schools}
+            component={Schools}
+            options={({ navigation }) => ({
+              headerTitleAlign: "center",
+              headerTitle: () => <HeaderTitle title={"Schools"} />,
+              headerLeft: () => <ButtonHeader />,
+              headerRight: () => (
+                <ButtonHeader
+                  children={<SvgAdd width={15} height={15} />}
+                  onPress={() => {
+                    navigation.navigate(ROUTES.AddSchool);
+                  }}
+                />
+              ),
+              headerBackground: () => <HeaderBackGround />,
+            })}
+          />
+          <Stack.Screen
+            name={ROUTES.Teachers}
+            component={Teachers}
+            options={({ navigation }) => ({
+              headerTitleAlign: "center",
+              headerTitle: () => <HeaderTitle title={"Teachers"} />,
+              headerLeft: () => <ButtonHeader />,
+              headerRight: () => (
+                <ButtonHeader
+                  children={<SvgAdd width={15} height={15} />}
+                  onPress={() => {
+                    navigation.navigate(ROUTES.AddTeacher);
+                  }}
+                />
+              ),
+              headerBackground: () => <HeaderBackGround />,
+            })}
           />
         </Stack.Navigator>
       ) : (

@@ -18,19 +18,16 @@ import SvgDelete from "@svgs/SvgDelete";
 const DoctorItem = (props) => {
   const {
     style,
-    imgDoctor,
-    doctorName,
-    specialized,
-    rating,
-    location,
-    onCall,
-    onMessage,
-    activeRemove,
-    onRemove,
-    onPress,
-    onLocation,
+    imgHospital,
+    name,
+    address,
+    phone,
+    speciality,
+    email,
+    onEditDoctor,
+    onDeleteDoctor,
+    id
   } = props;
-
   const buttonDelete = (color, backgroundColor, x, progress) => {
     const trans = progress.interpolate({
       inputRange: [0, 1],
@@ -59,49 +56,39 @@ const DoctorItem = (props) => {
   };
 
   return (
-    <Swipeable
-      friction={2}
-      rightThreshold={40}
-      renderRightActions={activeRemove ? renderRightActions : null}
-    >
       <TouchableOpacity
-        onPress={onPress}
+        // onPress={onPress}
         activeOpacity={0.6}
         style={[styles.doctorItem, style]}
       >
-        <Image style={styles.imgDoctor} source={imgDoctor} />
+        <Image style={styles.imgDoctor} source={imgHospital} />
         <View style={styles.rateView}>
-          <Text style={styles.txtDoctorName}>{doctorName}</Text>
-          <View style={styles.setRow}>
-            <SvgStar style={styles.svgStart} />
-            <Text style={styles.txtRating}>{rating}</Text>
-          </View>
+          <Text style={styles.txtDoctorName}>{name}</Text>
         </View>
-        <Text style={styles.txtSpecialized}>{specialized}</Text>
+        <Text style={styles.txtSpecialized}>{email} - {phone}</Text>
         <TouchableOpacity
-          onPress={onLocation}
+        //   onPress={onLocation}
           activeOpacity={0.6}
           style={styles.locationView}
         >
-          <SvgLocation color={colors.dimGray} />
-          <Text style={styles.txtLocation}> {location}</Text>
+          {/* <SvgLocation color={colors.dimGray} /> */}
+          <Text style={styles.txtLocation}>Speciality: {speciality}</Text>
         </TouchableOpacity>
         <View style={styles.btnView}>
           <ButtonPrimary
             style={styles.btnCall}
-            title={"Call"}
+            title={"Edit"}
             titleStyle={styles.txtBtnCall}
-            onPress={onCall}
+            onPress={() => onEditDoctor()}
           />
           <ButtonPrimary
             style={styles.btnMessage}
             titleStyle={styles.txtBtnMessage}
-            title={"Message"}
-            onPress={onMessage}
+            title={"Delete"}
+            onPress={() => onDeleteDoctor(id)}
           />
         </View>
       </TouchableOpacity>
-    </Swipeable>
   );
 };
 
@@ -185,25 +172,25 @@ const styles = StyleSheet.create({
   btnCall: {
     flex: 1,
     height: 32,
-    backgroundColor: colors.pageBackGround,
+    backgroundColor: colors.classicBlue,
     marginRight: 16,
   },
   txtBtnCall: {
     fontFamily: FONTS.HIND.Regular,
     fontWeight: "400",
     textTransform: "capitalize",
-    color: colors.silverChalice,
+    color: colors.white,
     fontSize: 14,
   },
   btnMessage: {
     flex: 1,
     height: 32,
-    backgroundColor: colors.secondBlueOpacity,
+    backgroundColor: colors.red,
   },
   txtBtnMessage: {
     fontWeight: "500",
     textTransform: "capitalize",
-    color: colors.secondBlue,
+    color: colors.white,
     fontSize: 14,
   },
   btnDeleteView: {

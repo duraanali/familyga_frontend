@@ -1,9 +1,9 @@
 import React, { memo } from "react";
-import { StyleSheet } from "react-native";
 import { createStackNavigator } from "@react-navigation/stack";
+import { SafeAreaView } from 'react-native-safe-area-context'; // Import SafeAreaView
 import ROUTES from "@utils/routes";
 import MainBottomTab from "@navigation/MainBottomTab";
-import { useIsDrawerOpen } from "@react-navigation/drawer";
+import { useDrawerStatus } from "@react-navigation/drawer";
 import Animated, {
   interpolate,
   useAnimatedStyle,
@@ -14,40 +14,36 @@ import Animated, {
 const Stack = createStackNavigator();
 
 const DrawerStack = memo(() => {
-  const isOpen = useIsDrawerOpen();
+  const isOpen = useDrawerStatus() === 'open';
   const progress = useDerivedValue(() => {
     return isOpen ? withTiming(1) : withTiming(0);
   }, [isOpen]);
 
-  const style = useAnimatedStyle(() => {
-    const scale = interpolate(progress.value, [0, 1], [1, 0.7]);
+  const animatedStyle = useAnimatedStyle(() => {
+    const scale = interpolate(progress.value, [0, 1], [1, 0.8]); // Adjusted for better visibility
     return {
-      transform: [{ scale: scale }],
-      flex: 1,
+      transform: [{ scale }],
     };
   });
 
+  // Wrap your Animated.View in a SafeAreaView to prevent overlap with status bar and navigation bar
   return (
-    <Animated.View style={style}>
-      <Stack.Navigator
-        screenOptions={{
-          headerTransparent: true,
-        }}
-      >
-        <Stack.Screen
-          options={{ headerShown: false }}
-          name={ROUTES.MainBottomTab}
-          component={MainBottomTab}
-        />
-      </Stack.Navigator>
-    </Animated.View>
+    <SafeAreaView style={{ flex: 1 }} edges={['top', 'bottom']}>
+      <Animated.View style={[{ flex: 1 }, animatedStyle]}>
+        <Stack.Navigator
+          screenOptions={{
+            headerTransparent: true,
+            headerShown: false,
+          }}
+        >
+          <Stack.Screen
+            name={ROUTES.MainBottomTab}
+            component={MainBottomTab}
+          />
+        </Stack.Navigator>
+      </Animated.View>
+    </SafeAreaView>
   );
 });
 
 export default DrawerStack;
-
-const styles = StyleSheet.create({
-  drawerStack: {
-    flex: 1,
-  },
-});

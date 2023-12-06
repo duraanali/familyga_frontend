@@ -1,105 +1,35 @@
-// parentSlice.js
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import BASE_URL from "./BaseUrl";
-import axios from "axios";
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import BASE_URL from './BaseUrl';
 
-// Async thunk for logging in
-export const loginUser = createAsyncThunk(
-  "parent/loginUser",
-  async (userData, thunkAPI) => {
-    try {
-      const response = await axios.post(`${BASE_URL}/parents/signin`, userData); // corrected endpoint
-      return response.data;
-    } catch (error) {
-      return thunkAPI.rejectWithValue(error.response.data);
-    }
-  }
-);
-
-// Async thunk for signing up
-export const signUpUser = createAsyncThunk(
-  "parent/signUpUser",
-  async (userData, thunkAPI) => {
-    try {
-      const response = await axios.post(`${BASE_URL}/parents/signup`, userData); // corrected endpoint
-      return response.data;
-    } catch (error) {
-      return thunkAPI.rejectWithValue(error.response.data);
-    }
-  }
-);
-
-export const parentSlice = createSlice({
-  name: "parent",
-  initialState: {
-    isLoggedIn: false,
-    parent: {
-      name: "",
-      email: "",
-      password: "",
-      phone: "",
-      address: "",
-      dob: "",
-      parent_type: "",
+const parentsApi = createApi({
+  reducerPath: 'parentsApi',
+  baseQuery: fetchBaseQuery({
+    baseUrl: BASE_URL,
+    prepareHeaders: (headers, { getState }) => {
+      const token = getState().auth.token; // Adjust this to where your token is stored
+      if (token) {
+        headers.set('Authorization', `Bearer ${token}`);
+      }
+      return headers;
     },
-    error: "",
-    loading: false,
-    token: ''
-  },
-  reducers: {
-    logoutUser: (state) => {
-      state.isLoggedIn = false;
-      state.parent = {
-        name: "",
-        email: "",
-        password: "",
-        phone: "",
-        address: "",
-        dob: "",
-        parent_type: "",
-      };
-      state.error = "";
-      state.loading = false;
-      state.token = ''
-    },
-  },
-  extraReducers: {
-    [loginUser.pending]: (state) => {
-      state.loading = true;
-      state.error = "";
-    },
-    [loginUser.fulfilled]: (state, action) => {
-      state.isLoggedIn = true;
-      state.parent = action.payload;
-      state.error = "";
-      state.loading = false;
-      state.token = action.payload.family_parent_token
-    },
-    [loginUser.rejected]: (state, action) => {
-      state.isLoggedIn = false;
-      state.parent = {};
-      state.error = action.payload;
-      state.loading = false;
-    },
-    [signUpUser.pending]: (state) => {
-      state.loading = true;
-      state.error = "";
-    },
-    [signUpUser.fulfilled]: (state, action) => {
-      state.isLoggedIn = true;
-      state.parent = action.payload;
-      state.error = "";
-      state.loading = false;
-      state.token = action.payload.family_parent_token
-    },
-    [signUpUser.rejected]: (state, action) => {
-      state.isLoggedIn = false;
-      state.parent = {};
-      state.error = action.payload;
-      state.loading = false;
-    },
-  },
+  }),
+  endpoints: (builder) => ({
+    loginUser: builder.mutation({
+      query: (userData) => ({
+        url: '/parents/signin',
+        method: 'POST',
+        body: userData,
+      }),
+    }),
+    signUpUser: builder.mutation({
+      query: (userData) => ({
+        url: '/parents/signup',
+        method: 'POST',
+        body: userData,
+      }),
+    }),
+  }),
 });
 
-export const { logoutUser } = parentSlice.actions;
-export default parentSlice.reducer;
+export const { useLoginUserMutation, useSignUpUserMutation } = parentsApi;
+export default parentsApi.reducer

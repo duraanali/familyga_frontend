@@ -5,6 +5,7 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
+  Image,
   Alert,
 } from "react-native";
 import { ScaledSheet } from "react-native-size-matters";
@@ -19,6 +20,8 @@ import SvgBackArrow from "@svgs/SvgBackArrow";
 import SvgAvatar from "@svgs/CreateAccount/SvgAvatar";
 import InputButton from "@components/InputButton";
 import { useNavigation } from "@react-navigation/native";
+import * as ImagePicker from 'expo-image-picker';
+import LoadingScreen from "@components/LoadingScreen";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   useUpdateKidMutation,
@@ -34,6 +37,9 @@ const EditKid = memo(({ route }) => {
   const { childData } = route.params;
   const [updateKid, { isSuccess, isError, error }] = useUpdateKidMutation();
   const { refetch } = useFetchKidsQuery();
+  const [isLoading, setIsLoading] = useState(false); // New loading state
+  const [image, setImage] = useState(null);
+
   const [showError, setShowError] = useState(false);
 
   useEffect(() => {
@@ -64,24 +70,47 @@ const EditKid = memo(({ route }) => {
       hair_color: childData.hair_color,
       insurance_card_number: childData.insurance_card_number,
       ss_number: childData.ss_number,
+      image: childData.image,
     },
   });
+
+  const pickImage = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images, // Restrict to images only
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+  
+    if (!result.canceled) {
+      setImage(result.assets[0].uri);
+    }
+  };
+
 
   const onSubmit = useCallback(
     async (data) => {
       try {
+        setIsLoading(true);
         await updateKid({ id: childData.id, ...data })
           .unwrap()
           .then((res) => {
+            setIsLoading(false);
             console.log("Update success:", res.data);
             navigation.navigate(ROUTES.KidProfile);
           });
       } catch (error) {
         console.error("Update failed:", error);
+        setIsLoading(false);
       }
     },
     [updateKid, navigation]
   );
+
+    // Conditional rendering based on loading state
+    if (isLoading) {
+      return <LoadingScreen />; // Replace with your LoadingScreen component
+    }
 
   return (
     <View style={styles.container}>
@@ -273,11 +302,14 @@ const EditKid = memo(({ route }) => {
         />
       </ScrollView>
 
-      <View style={[styles.avatar, { top: top + 72 }]}>
+      <View style={[styles.avatar, { top: top + 72 }]} >
         <View>
-          <SvgAvatar />
+        {!childData.image && !image &&  <SvgAvatar />}
+        {!image && childData.image && <Image source={{ uri: childData.image }} style={styles.avatarImage} />}
+        {image && childData.image && <Image source={{ uri: image }} style={styles.avatarImage} />}
+        {image && !childData.image && <Image source={{ uri: image }} style={styles.avatarImage} />}
         </View>
-        <TouchableOpacity activeOpacity={0.8} style={styles.addView}>
+        <TouchableOpacity activeOpacity={0.8} style={styles.addView} onPress={pickImage} >
           <SvgAdd />
         </TouchableOpacity>
       </View>
@@ -329,6 +361,11 @@ const styles = ScaledSheet.create({
     fontSize: 16,
     lineHeight: 20,
     color: colors.white,
+  },
+  avatarImage: {
+    width: 84,
+    height: 84,
+    borderRadius: 40,
   },
   avatar: {
     width: 84,

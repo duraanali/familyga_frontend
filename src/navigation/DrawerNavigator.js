@@ -82,16 +82,16 @@ const DrawerNavigator = memo(() => {
         props.navigation.navigate(ROUTES.DoctorsBottomTab);
         break;
       case 3:
-        props.navigation.navigate(ROUTES.Services);
+        props.navigation.navigate(ROUTES.Hospitals);
         break;
       case 4:
-        props.navigation.navigate(ROUTES.DashBoard);
+        props.navigation.navigate(ROUTES.Schools);
         break;
       case 5:
-        props.navigation.navigate(ROUTES.UserProfileBottomTab);
+        props.navigation.navigate(ROUTES.Doctors);
         break;
       case 6:
-        props.navigation.navigate(ROUTES.News);
+        props.navigation.navigate(ROUTES.Teachers);
         break;
       case 7:
         props.navigation.navigate(ROUTES.SignIn);
@@ -146,7 +146,7 @@ const DrawerNavigator = memo(() => {
         overlayColor="transparent"
         drawerStyle={styles.drawerStyles}
         contentContainerStyle={styles.contentContainerDrawer}
-        drawerContentOptions={{
+        screenOptions={{
           activeBackgroundColor: "transparent",
           activeTintColor: "white",
           inactiveTintColor: "white",

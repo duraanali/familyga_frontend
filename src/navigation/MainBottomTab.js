@@ -17,7 +17,7 @@ const MainBottomTab = memo(() => {
   return (
     <Tab.Navigator
       initialRouteName={ROUTES.MainPageBottomTab}
-      tabBarOptions={{
+      screenOptions={{
         style: styles.tabBarOptions,
         showLabel: false,
         activeTintColor: colors.classicBlue,

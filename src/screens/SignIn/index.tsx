@@ -6,7 +6,6 @@ import SvgHeart from "@svgs/SignIn/SvgHeart";
 import FONTS from "@utils/fonts/index";
 import SvgUser from "@svgs/SignIn/SvgUser";
 import SvgLock from "@svgs/SignIn/SvgLock";
-import SvgFaceID from "@svgs/SignIn/SvgFaceID";
 import ROUTES from "@utils/routes";
 import ButtonPrimary from "@components/ButtonPrimary";
 import TextInputHealer from "@components/TextInputHealer";
@@ -15,11 +14,9 @@ import HideWithKeyboard from "@components/HideWithKeyboard";
 import Container from "@components/Container";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-import PolicyCheck from "@components/PolicyCheck";
 import { useForm, Controller } from "react-hook-form";
-import useToggle from "@hooks/useToggle";
 import { useSelector, useDispatch } from "react-redux";
-import { loginUser } from "../../store/slices/ParentSlice";
+import { useLoginUserMutation } from "../../store/slices/ParentSlice";
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 
@@ -27,6 +24,8 @@ const SignIn = memo(() => {
   const { navigate } = useNavigation();
   const { top } = useSafeAreaInsets();
   const { bottom } = useSafeAreaInsets();
+  const [loginError, setLoginError] = useState('');
+
   
   const schema = yup.object().shape({
     email: yup.string().email('Invalid email').required('Email is required'),
@@ -42,28 +41,28 @@ const SignIn = memo(() => {
       password: '',
     }
   });
+
+  const [loginUser, { data: logginDaa }] = useLoginUserMutation();
   const [isLoading, setIsLoading] = useState(false); // New state for loading indicator
 
-  const dispatch = useDispatch();
-  const isLoggedIn = useSelector((state) => state.parent);
-
   const onSignIn = useCallback((data) => {
-    setIsLoading(true); // Start loading
-   console.log("LOGIN DATA", data)
-    dispatch(loginUser(data)).then((res) => {
-      console.log("RES", res)
-      
-    }, (error) => {
-      console.log("ERROR", error)
-    }
-    );
 
-    setTimeout(() => {
-      setIsLoading(false); // Stop loading
-    }, 3000);
+    setIsLoading(true); // Show loading indicator
+    loginUser(data).unwrap()
+    .then((res) => {
+      setIsLoading(false); // Hide loading indicator
+      if(res.status === 200) {
+        navigate(ROUTES.Home);
+      }
+    })
+    .catch((err) => {
+      setIsLoading(false); // Hide loading indicator
+      setLoginError(err.data.message);
+    })
+
+  
     
-    
-  }, [dispatch, isLoggedIn]);
+  }, []);
 
   const onFaceBook = useCallback(() => {}, []);
 
@@ -120,6 +119,7 @@ const SignIn = memo(() => {
         )}
       />
       {errors.password && <Text style={styles.passworderror}>{errors.password.message}</Text>}
+      {loginError !== '' &&  <Text style={styles.loginError}>{loginError}</Text> }
         {/* <PolicyCheck check={check} onPress={setCheck} /> */}
         <View style={styles.signInView}>
           <ButtonPrimary
@@ -128,6 +128,7 @@ const SignIn = memo(() => {
             title={"Sign In"}
             // disable={!check}
           />
+          
           {/* <TouchableOpacity activeOpacity={0.7} style={styles.viewFaceId}>
             <SvgFaceID />
           </TouchableOpacity> */}
@@ -221,6 +222,12 @@ const styles = ScaledSheet.create({
   txtInput2: {
     marginTop: 16,
     marginBottom: 24,
+  },
+  loginError: {
+    color: 'red',
+    fontSize: '14@s',
+    marginBottom: '15@s',
+    textAlign: 'center',
   },
   signIn: {
     backgroundColor: colors.classicBlue,
