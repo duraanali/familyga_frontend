@@ -16,53 +16,63 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { useForm, Controller } from "react-hook-form";
 import { useSelector, useDispatch } from "react-redux";
-import { useLoginUserMutation } from "../../store/slices/ParentSlice";
-import { yupResolver } from '@hookform/resolvers/yup';
-import * as yup from 'yup';
+import { useLoginUserMutation } from "../../store/slices/AuthSlice";
+import { yupResolver } from "@hookform/resolvers/yup";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { setCredentials } from "../../store/slices/AuthSlice";
+
+import * as yup from "yup";
 
 const SignIn = memo(() => {
   const { navigate } = useNavigation();
   const { top } = useSafeAreaInsets();
   const { bottom } = useSafeAreaInsets();
-  const [loginError, setLoginError] = useState('');
-
-  
+  const [loginError, setLoginError] = useState("");
+  const dispatch = useDispatch();
   const schema = yup.object().shape({
-    email: yup.string().email('Invalid email').required('Email is required'),
-    password: yup.string().min(6, 'Password must be at least 6 characters').required('Password is required'),
+    email: yup.string().email("Invalid email").required("Email is required"),
+    password: yup
+      .string()
+      .min(6, "Password must be at least 6 characters")
+      .required("Password is required"),
   });
 
-  
-
-  const { control, handleSubmit, formState: {errors} } = useForm({
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
     resolver: yupResolver(schema),
     defaultValues: {
-      email: '',
-      password: '',
-    }
+      email: "Duraan@gmail.com",
+      password: "Allahisone",
+    },
   });
 
-  const [loginUser, { data: logginDaa }] = useLoginUserMutation();
+  const [loginUser, { data: logginDaa, isSuccess, isError, error }] =
+    useLoginUserMutation();
+
   const [isLoading, setIsLoading] = useState(false); // New state for loading indicator
 
-  const onSignIn = useCallback((data) => {
+  const handleLogin = async (userData) => {
+    try {
+      setIsLoading(true); // Set loading state to true
+      const result = await loginUser(userData).unwrap(); // This unwraps the result to handle it directly
 
-    setIsLoading(true); // Show loading indicator
-    loginUser(data).unwrap()
-    .then((res) => {
-      setIsLoading(false); // Hide loading indicator
-      if(res.status === 200) {
-        navigate(ROUTES.Home);
+      if (result.family_parent_token) {
+        await AsyncStorage.setItem("token", result.family_parent_token);
+        dispatch(
+          setCredentials({ family_parent_token: result.family_parent_token })
+        );
+        setIsLoading(false); // Set loading state to false
       }
-    })
-    .catch((err) => {
-      setIsLoading(false); // Hide loading indicator
-      setLoginError(err.data.message);
-    })
-
-  
-    
-  }, []);
+    } catch (error) {
+      setIsLoading(false); // Set loading state to false
+      setLoginError(error.data.message);
+      console.error("Login failed:", error);
+      // Handle error state in the UI, such as showing an error message
+    }
+  };
 
   const onFaceBook = useCallback(() => {}, []);
 
@@ -72,99 +82,91 @@ const SignIn = memo(() => {
     navigate(ROUTES.SignUp);
   }, []);
 
-
   return (
     <Container style={styles.container}>
-       {isLoading ? ( // If loading state is true, show loading indicator
-        <ActivityIndicator size="large" color={colors.blue} style={styles.indicator}/> // Loading indicator
+      {isLoading ? ( 
+        <ActivityIndicator
+          size="large"
+          color={colors.blue}
+          style={styles.indicator}
+        /> 
       ) : (
         <>
-      <View style={styles.svgHeart}>
-        <SvgHeart />
-      </View>
-      <KeyboardAwareScrollView
-        enableOnAndroid
-        extraHeight={100}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.contentContainerStyle}
-      >
-        <Text style={styles.txtWelcome}>Welcome to Familyga</Text>
-        <Controller
-        control={control}
-        name="email"
-        render={({ field: { onChange, onBlur, value } }) => (
-          <TextInputHealer
-            style={styles.txtInput1}
-            svg={<SvgUser />}
-            placeholder={"Email"}
-            onBlur={onBlur}
-            onChangeText={onChange}
-            value={value}
-          />
-        )}
-      />
-      {errors.email && <Text style={styles.emailerror}>{errors.email.message}</Text>}
-      <Controller
-        control={control}
-        name="password"
-        render={({ field: { onChange, onBlur, value } }) => (
-          <TextInputHealer
-            style={styles.txtInput2}
-            svg={<SvgLock />}
-            placeholder={"Password"}
-            onBlur={onBlur}
-            onChangeText={onChange}
-            value={value}
-          />
-        )}
-      />
-      {errors.password && <Text style={styles.passworderror}>{errors.password.message}</Text>}
-      {loginError !== '' &&  <Text style={styles.loginError}>{loginError}</Text> }
-        {/* <PolicyCheck check={check} onPress={setCheck} /> */}
-        <View style={styles.signInView}>
-          <ButtonPrimary
-            onPress={handleSubmit(onSignIn)}
-            style={styles.signIn}
-            title={"Sign In"}
-            // disable={!check}
-          />
-          
-          {/* <TouchableOpacity activeOpacity={0.7} style={styles.viewFaceId}>
-            <SvgFaceID />
-          </TouchableOpacity> */}
-        </View>
-        <TouchableOpacity
-          onPress={onSignIn}
-          style={styles.forgotPasswordView}
-        >
-          <Text style={styles.txtForgotPassword}>Forgot password?</Text>
+          <View style={styles.svgHeart}>
+            <SvgHeart />
+          </View>
+          <KeyboardAwareScrollView
+            enableOnAndroid
+            extraHeight={100}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.contentContainerStyle}
+          >
+            <Text style={styles.txtWelcome}>Welcome to Familyga</Text>
+            <Controller
+              control={control}
+              name="email"
+              render={({ field: { onChange, onBlur, value } }) => (
+                <TextInputHealer
+                  style={styles.txtInput1}
+                  svg={<SvgUser />}
+                  placeholder={"Email"}
+                  onBlur={onBlur}
+                  onChangeText={onChange}
+                  value={value}
+                />
+              )}
+            />
+            {errors.email && (
+              <Text style={styles.emailerror}>{errors.email.message}</Text>
+            )}
+            <Controller
+              control={control}
+              name="password"
+              render={({ field: { onChange, onBlur, value } }) => (
+                <TextInputHealer
+                  style={styles.txtInput2}
+                  svg={<SvgLock />}
+                  placeholder={"Password"}
+                  onBlur={onBlur}
+                  onChangeText={onChange}
+                  value={value}
+                />
+              )}
+            />
+            {errors.password && (
+              <Text style={styles.passworderror}>
+                {errors.password.message}
+              </Text>
+            )}
+            {loginError !== "" && (
+              <Text style={styles.loginError}>{loginError}</Text>
+            )}
+            <View style={styles.signInView}>
+              <ButtonPrimary
+                onPress={handleSubmit(handleLogin)}
+                style={styles.signIn}
+                title={"Sign In"}
+              />
+            </View>
+            <TouchableOpacity
+              onPress={handleLogin}
+              style={styles.forgotPasswordView}
+            >
+              <Text style={styles.txtForgotPassword}>Forgot password?</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={onSignUp}>
+          <Text style={styles.txtSignUp}>Don’t Have Account? Sign UP</Text>
         </TouchableOpacity>
-        <View style={styles.lineView}>
-          <View style={styles.line} />
-          <Text style={styles.txtOr}>or</Text>
-          <View style={styles.line} />
-        </View>
-        <ButtonPrimary
-          onPress={onFaceBook}
-          style={styles.facebook}
-          title={"Sign In With Facebook"}
-        />
-        <ButtonPrimary
-          onPress={onGoogle}
-          style={styles.google}
-          title={"Sign In With Google"}
-        />
-      </KeyboardAwareScrollView>
-      </>
+          </KeyboardAwareScrollView>
+        </>
       )}
-      <HideWithKeyboard
-        style={[styles.signUpView, { paddingBottom: bottom + 8 }]}
+      {/* <HideWithKeyboard
+        style={[styles.signUpView, { paddingBottom: bottom + 50 }]}
       >
         <TouchableOpacity onPress={onSignUp}>
           <Text style={styles.txtSignUp}>Don’t Have Account? Sign UP</Text>
         </TouchableOpacity>
-      </HideWithKeyboard>
-      
+      </HideWithKeyboard> */}
     </Container>
   );
 });
@@ -176,22 +178,23 @@ const styles = ScaledSheet.create({
     flex: 1,
     backgroundColor: colors.white,
     paddingHorizontal: 40,
+    paddingTop: "50%",
   },
   svgHeart: {
     marginTop: 12,
     marginBottom: 8,
   },
   passworderror: {
-    color: 'red',
-    fontSize: '14@s',
-    marginLeft: '15@s',
-    marginBottom: '10@s',
-    marginTop: '-15@s',
+    color: "red",
+    fontSize: "14@s",
+    marginLeft: "15@s",
+    marginBottom: "10@s",
+    marginTop: "-15@s",
   },
   emailerror: {
-    color: 'red',
-    fontSize: '14@s',
-    marginLeft: '15@s',
+    color: "red",
+    fontSize: "14@s",
+    marginLeft: "15@s",
   },
   indicator: {
     flex: 1,
@@ -224,22 +227,15 @@ const styles = ScaledSheet.create({
     marginBottom: 24,
   },
   loginError: {
-    color: 'red',
-    fontSize: '14@s',
-    marginBottom: '15@s',
-    textAlign: 'center',
+    color: "red",
+    fontSize: "14@s",
+    marginBottom: "15@s",
+    textAlign: "center",
   },
   signIn: {
     backgroundColor: colors.classicBlue,
   },
-  viewFaceId: {
-    width: 48,
-    height: 48,
-    borderRadius: 16,
-    backgroundColor: colors.secondBlue,
-    justifyContent: "center",
-    alignItems: "center",
-  },
+
   signInView: {
     flexDirection: "row",
     alignItems: "center",
@@ -275,19 +271,12 @@ const styles = ScaledSheet.create({
     height: 1,
     backgroundColor: colors.pageBackGround,
   },
-  facebook: {
-    marginTop: 22,
-  },
-  google: {
-    backgroundColor: colors.secondRed,
-    marginTop: 24,
-  },
+
   signUpView: {
-    position: "absolute",
     right: 0,
     left: 0,
-    bottom: 0,
-    paddingTop: 8,
+    bottom: 100,
+    paddingBottom: 100,
     alignItems: "center",
     backgroundColor: colors.white,
   },
@@ -297,6 +286,8 @@ const styles = ScaledSheet.create({
     fontSize: 12,
     color: colors.classicBlue,
     textTransform: "uppercase",
+    marginTop: 24,
+    alignSelf: "center",
   },
   contentContainerStyle: {
     paddingTop: 20,

@@ -22,14 +22,17 @@ import { useNavigation } from "@react-navigation/native";
 import Container from "@components/Container";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useSelector, useDispatch } from 'react-redux';
-import { signUpUser } from '../../store/slices/ParentSlice'
+import { useSignUpUserMutation } from '../../store/slices/AuthSlice';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
+import { setCredentials } from "../../store/slices/AuthSlice";
 
 const SignUp = memo(() => {
   const { navigate } = useNavigation();
   const { top } = useSafeAreaInsets();
   const [signUpError, setSignUpError] = useState('');
+
+  const [signUpUser, { data: signUpData }] = useSignUpUserMutation();
 
   const schema = yup.object().shape({
     name: yup.string().required('Name is required'),
@@ -59,25 +62,20 @@ const SignUp = memo(() => {
   }, []);
 
   const onSignUp = useCallback((data) => {
+    
     setIsLoading(true);
     setSignUpError(''); // Reset sign-up error message
   
-    dispatch(signUpUser(data))
-      .unwrap()
-      .then((res) => {
-        console.log('Sign up successful', res);
-        // Navigate to another screen or do something on successful sign-up
-        setSignUpError(res.payload.message || 'Sign up failed. Please try again.');
-      })
-      .catch((error) => {
-        console.error('Sign up failed:', error);
-        // Set the error message from the response
-        setSignUpError(error.message || 'Sign up failed. Please try again.');
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
-  }, [dispatch]);
+    signUpUser(data).unwrap()
+    .then((res) => {
+      setIsLoading(false);
+      console.log('SIGN UP RESPONSE', res);
+      if (res.family_parent_token) {
+        dispatch(setCredentials({ family_parent_token: res.family_parent_token }));
+      }
+    })
+
+  }, []);
   
 
   const onFaceBook = useCallback(() => {}, []);

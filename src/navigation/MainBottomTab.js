@@ -16,14 +16,15 @@ const Tab = createBottomTabNavigator();
 const MainBottomTab = memo(() => {
   return (
     <Tab.Navigator
-      initialRouteName={ROUTES.MainPageBottomTab}
-      screenOptions={{
-        style: styles.tabBarOptions,
-        showLabel: false,
-        activeTintColor: colors.classicBlue,
-        inactiveTintColor: colors.silverChalice,
-      }}
-    >
+    initialRouteName={ROUTES.MainPageBottomTab}
+    screenOptions={{
+      headerShown: false, // This will hide the header for all tab screens
+      style: styles.tabBarOptions,
+      showLabel: false,
+      activeTintColor: colors.classicBlue,
+      inactiveTintColor: colors.silverChalice,
+    }}
+  >
      
     
       <Tab.Screen

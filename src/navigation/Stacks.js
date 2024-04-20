@@ -32,8 +32,7 @@ import AddTeacher from "@screens/Teachers/AddTeacher";
 import EditTeacher from "@screens/Teachers/EditTeacher";
 
 const Stacks = memo(() => {
-  const isLoggedIn = useSelector((state) => state.authApi.isLoggedIn); // Accessing isLoggedIn state
-  console.log("isLoggedIn", isLoggedIn)
+  const isLoggedIn = useSelector((state) => state.auth.isLoggedIn);
   return (
     <NavigationContainer>
       {isLoggedIn ? (

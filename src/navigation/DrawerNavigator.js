@@ -7,14 +7,18 @@ import {
 import ROUTES from "@utils/routes";
 import DrawerStack from "@navigation/DrawerStack";
 import colors from "@utils/colors";
+import { CommonActions } from "@react-navigation/native";
 
 import SvgAvatar from "@svgs/Menu/SvgAvatar";
 import FONTS from "@utils/fonts";
 import DrawerItem from "@components/DrawerItem";
 import useLayout from "@hooks/useLayout";
-import { useDispatch, useSelector } from 'react-redux'; // Import useDispatch
-import { logoutUser } from '../store/slices/ParentSlice'; // Import logoutUser action
-
+import { useDispatch, useSelector } from "react-redux"; // Import useDispatch
+import { useLogoutUserMutation } from "../store/slices/AuthSlice";
+import {fetchParent} from "../store/slices/ParentSlice"
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { clearCredentials, logOut } from "../store/slices/AuthSlice";
+import { persistor } from "../store";
 const Drawer = createDrawerNavigator();
 
 const SCREENS = [
@@ -24,51 +28,73 @@ const SCREENS = [
   { id: 3, label: "Hospitals" },
   { id: 4, label: "Schools" },
   { id: 5, label: "Doctors" },
-  { id: 6, label: "Teachers"},
+  { id: 6, label: "Teachers" },
   { id: 7, label: "To Do" },
   { id: 8, label: "Profile" },
   { id: 9, label: "Log out" },
 ];
 
 const DrawerNavigator = memo(() => {
-  const {bottom}=useLayout()
+  const { bottom } = useLayout();
   const [user, setUser] = useState({});
   const [tabActive, setTabActive] = useState(0);
   const dispatch = useDispatch(); // Create dispatch object
 
-  const parent = useSelector((state) => state.parent); // Accessing parent state
+  // const parent = useSelector((state) => state.parent); // Accessing parent state
+  // console.log("parent NAVB", parent);
+  const parent = useSelector((state) => state.parent.parent); // Accessing parent state
+  useEffect(() => {
+    dispatch(fetchParent());
+    
+  }, [dispatch]);
 
   useEffect(() => {
-    if (parent && parent.isLoggedIn) {
+    if (parent) {
       setUser({
         avatar: require("@assets/Menu/Avatar.png"),
-        userName: parent.parent.user.name,
+        userName: parent.name,
       });
     }
-  }, [parent.isLoggedIn]);
+  }, [parent]);
 
   const removeAppKeys = async () => {
-    let keys = []
+    let keys = [];
     try {
-      keys = await AsyncStorage.getAllKeys()
-      console.log(`Keys: ${keys}`) // Just to see what's going on
-      await AsyncStorage.multiRemove(keys)
-    } catch(e) {
-     console.log(e)
+      keys = await AsyncStorage.getAllKeys();
+      const token = await AsyncStorage.getItem("token");
+      await AsyncStorage.multiRemove(keys);
+      await AsyncStorage.removeItem("token");
+      
+    } catch (e) {
+      console.log(e);
     }
-    console.log('Done')
-  }
+    console.log("Done");
+  };
 
-  const handleLogout = (props) => {
-    dispatch(logoutUser()); // Dispatch logoutUser action
-    removeAppKeys();
-    props.navigation.navigate(ROUTES.SignIn); // Navigate to SignIn screen or any other screen as needed
+
+
+  const handleLogout = async (props) => {
+    try {
+      dispatch(logOut()); // Call the logout action
+      await AsyncStorage.removeItem('token');
+       persistor.purge();
+     // Navigate to the sign-in screen
+     props.navigation.dispatch(
+      CommonActions.reset({
+        index: 0,
+        routes: [{ name: ROUTES.SignIn }],
+      })
+    );
+    } catch (error) {
+      console.error('Login failed:', error);
+      // Handle error state in the UI, such as showing an error message
+    }
   };
 
   const onNavigate = (key, props) => {
-
-    if (key === 9) { // Assuming '7' is the ID for the Logout option
+    if (key === 9) {
       handleLogout(props);
+      return;
     }
 
     switch (key) {
@@ -79,7 +105,7 @@ const DrawerNavigator = memo(() => {
         props.navigation.navigate(ROUTES.Kids);
         break;
       case 2:
-        props.navigation.navigate(ROUTES.DoctorsBottomTab);
+        props.navigation.navigate(ROUTES.BookAppointment);
         break;
       case 3:
         props.navigation.navigate(ROUTES.Hospitals);
@@ -94,7 +120,15 @@ const DrawerNavigator = memo(() => {
         props.navigation.navigate(ROUTES.Teachers);
         break;
       case 7:
-        props.navigation.navigate(ROUTES.SignIn);
+        props.navigation.navigate(ROUTES.ToDo);
+        break;
+      case 8:
+        props.navigation.navigate(ROUTES.UserProfile);
+        break;
+      case 9:
+        props.navigation.navigate(ROUTES.Logout);
+        break;
+      default:
         break;
     }
   };
@@ -106,7 +140,7 @@ const DrawerNavigator = memo(() => {
         bounces={false}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
-          paddingBottom: bottom
+          paddingBottom: bottom,
         }}
       >
         <TouchableOpacity
@@ -150,6 +184,7 @@ const DrawerNavigator = memo(() => {
           activeBackgroundColor: "transparent",
           activeTintColor: "white",
           inactiveTintColor: "white",
+          headerShown: false,
         }}
         sceneContainerStyle={styles.sceneContainerStyle}
         drawerContent={(props) => {

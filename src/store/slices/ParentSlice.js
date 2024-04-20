@@ -1,35 +1,59 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import BASE_URL from './BaseUrl';
+import axios from "utils/axios";
+import { createSlice } from "@reduxjs/toolkit";
+import BASE_URL from "./BaseUrl";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const parentsApi = createApi({
-  reducerPath: 'parentsApi',
-  baseQuery: fetchBaseQuery({
-    baseUrl: BASE_URL,
-    prepareHeaders: (headers, { getState }) => {
-      const token = getState().auth.token; // Adjust this to where your token is stored
-      if (token) {
-        headers.set('Authorization', `Bearer ${token}`);
-      }
-      return headers;
+// Initial state
+const initialState = {
+  parent: null,
+  isLoading: false,
+  error: null,
+  // Add additional state properties as needed
+};
+
+// Parent Slice
+const parentSlice = createSlice({
+  name: "parent",
+  initialState,
+  reducers: {
+    startLoading: (state) => {
+      state.isLoading = true;
+      state.error = null;
     },
-  }),
-  endpoints: (builder) => ({
-    loginUser: builder.mutation({
-      query: (userData) => ({
-        url: '/parents/signin',
-        method: 'POST',
-        body: userData,
-      }),
-    }),
-    signUpUser: builder.mutation({
-      query: (userData) => ({
-        url: '/parents/signup',
-        method: 'POST',
-        body: userData,
-      }),
-    }),
-  }),
+    setError: (state, action) => {
+      state.isLoading = false;
+      state.error = action.payload;
+    },
+    getParentSuccess: (state, action) => {
+      state.parent = action.payload;
+      state.isLoading = false;
+    },
+    
+  },
 });
 
-export const { useLoginUserMutation, useSignUpUserMutation } = parentsApi;
-export default parentsApi.reducer
+export const {
+  startLoading,
+  setError,
+  getParentSuccess,
+} = parentSlice.actions;
+
+// Thunks
+export const fetchParent = () => async (dispatch) => {
+  try {
+    // get token from async storage
+    const token = await AsyncStorage.getItem("token");
+    dispatch(startLoading());
+    const response = await axios.get(`${BASE_URL}/parents/profile/`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    dispatch(getParentSuccess(response.data.profile));
+  } catch (err) {
+    dispatch(setError(err));
+  }
+};
+
+// Export the reducer
+export default parentSlice.reducer;

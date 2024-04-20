@@ -17,26 +17,30 @@ import { doctorsApi } from './slices/DoctorSlice';
 import { hospitalsApi } from './slices/HospitalSlice';
 import { schoolsApi } from './slices/SchoolSlice';
 import { teachersApi } from './slices/TeacherSlice';
-import parentsApi from './slices/ParentSlice';
-import authApi from './slices/AuthSlice';
+import { authApi } from './slices/AuthSlice';
+import authReducer from './slices/AuthSlice';
+import parentReducer from './slices/ParentSlice';
 
 // Combine the API reducers
 const rootReducer = combineReducers({
-  // Assuming these are your API slices with reducers and middleware
   [kidsApi.reducerPath]: kidsApi.reducer,
   [doctorsApi.reducerPath]: doctorsApi.reducer,
   [hospitalsApi.reducerPath]: hospitalsApi.reducer,
   [schoolsApi.reducerPath]: schoolsApi.reducer,
   [teachersApi.reducerPath]: teachersApi.reducer,
-  parent: parentsApi,
-  auth: authApi,
+  [authApi.reducerPath]: authApi.reducer,
+    auth: authReducer,
+    parent: parentReducer,
+  
+
 });
 
 // Set up Redux Persist configuration
 const persistConfig = {
   key: 'root',
   storage: AsyncStorage,
-  // You might want to add "blacklist" or "whitelist" configurations here
+  // Optionally, add blacklist or whitelist to exclude or include specific slices
+  blacklist: ['authApi']
 };
 
 // Apply the Redux Persist reducer
@@ -48,19 +52,18 @@ export const store = configureStore({
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {
-        // Ignore these action types from Redux Persist as they can contain non-serializable values
         ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
       },
     })
-    // Apply the middleware for each of the RTK Query APIs
-    .concat(kidsApi.middleware)
-    .concat(doctorsApi.middleware)
-    .concat(hospitalsApi.middleware)
-    .concat(schoolsApi.middleware)
-    .concat(teachersApi.middleware)
-    .concat(parentsApi.middleware)
-    .concat(authApi.middleware),
-    });
+    .concat(
+      kidsApi.middleware,
+      doctorsApi.middleware,
+      hospitalsApi.middleware,
+      schoolsApi.middleware,
+      teachersApi.middleware,
+      authApi.middleware,
+    ),
+});
 
 // Create the persistor for the store
 export const persistor = persistStore(store);

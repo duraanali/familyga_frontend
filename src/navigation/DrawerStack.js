@@ -28,7 +28,7 @@ const DrawerStack = memo(() => {
 
   // Wrap your Animated.View in a SafeAreaView to prevent overlap with status bar and navigation bar
   return (
-    <SafeAreaView style={{ flex: 1 }} edges={['top', 'bottom']}>
+    <SafeAreaView style={{ flex: 1 }} edges={['bottom']}>
       <Animated.View style={[{ flex: 1 }, animatedStyle]}>
         <Stack.Navigator
           screenOptions={{

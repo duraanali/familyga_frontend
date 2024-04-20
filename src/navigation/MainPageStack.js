@@ -20,6 +20,7 @@ const MainPageStack = memo(() => {
         component={MainPage}
         options={({ navigation }) => ({
           headerTitleAlign: "center",
+          
           headerTitle: () => (
             <HeaderTitle children={<SvgCarer color={colors.white} />} />
           ),

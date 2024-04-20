@@ -19,13 +19,12 @@ import { useNavigation } from "@react-navigation/native";
 import keyExtractor from "@utils/keyExtractor";
 import AppointmentListItem from "@components/AppointmentListItem";
 import { useSelector, useDispatch } from 'react-redux';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { fetchParent } from '../../store/slices/ParentSlice';
 
 const MainPage = memo(() => {
   const { navigate } = useNavigation();
   const dispatch = useDispatch();
   const [user, setUser] = React.useState({});
-  const parent = useSelector((state) => state.parent);
 
   const UPCOMING_DATA = [
     {
@@ -67,25 +66,19 @@ const MainPage = memo(() => {
     },
   ];
 
-  // const removeAppKeys = async () => {
-  //   let keys = []
-  //   try {
-  //     keys = await AsyncStorage.getAllKeys()
-  //     console.log(`Keys: ${keys}`) // Just to see what's going on
-  //     await AsyncStorage.multiRemove(keys)
-  //   } catch(e) {
-  //    console.log(e)
-  //   }
-  //   console.log('Done')
-  // }
 
+  const parent = useSelector((state) => state.parent);
 
-  // useEffect(() => {
-  //   // removeAppKeys();
-  //   if (parent && parent.isLoggedIn) {
-  //     setUser(parent.parent.user);
-  //   }
-  // }, [parent.isLoggedIn]);
+  useEffect(() => {
+    dispatch(fetchParent());
+
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (parent) {
+      setUser(parent.parent);
+    }
+  }, [parent]);
 
   const renderAppointment = React.useCallback(({ item }) => {
     const {
@@ -134,7 +127,7 @@ const MainPage = memo(() => {
     <View style={styles.container}>
        {user && (
         <>
-       <Text style={styles.txtHi}>Hi! {user.name}</Text>
+       <Text style={styles.txtHi}>Hi, {user.name}!</Text>
         <Text style={styles.txtToday}>How is your day going?</Text>
         </>
         )}
@@ -146,8 +139,7 @@ const MainPage = memo(() => {
         scrollEventThrottle={16}
         numColumns={2}
         contentContainerStyle={{
-          paddingTop: 24,
-          marginBottom: -90,
+          marginBottom: -20,
         }}
       />
       {UPCOMING_DATA.length > 0 && (
